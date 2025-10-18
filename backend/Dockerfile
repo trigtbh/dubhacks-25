@@ -28,4 +28,7 @@ COPY . .
 
 # Specify the command to run when the container starts.
 # This executes `python3 run.py`
+
+EXPOSE 8000
+
 CMD ["uv", "run", "run.py"]
