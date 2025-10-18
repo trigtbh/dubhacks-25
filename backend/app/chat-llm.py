@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from typing import Dict, List, Any
 from google import genai
+from google.genai import types
+
 import os
 
 # ---------- CONFIG ----------
@@ -26,8 +28,7 @@ user_sessions: Dict[str, List[Dict[str, Any]]] = {}
 # ---------- FUNCTION: log_interest ----------
 def log_interest(interest_summary: str):
     """
-    This would normally log to a database or analytics system.
-    For now, it just returns the summary for tracking.
+    Record user interests, hobbies, or traits as structured intel 
     """
     print(f"[INTEL LOGGED] {interest_summary}")
     return interest_summary
@@ -41,25 +42,14 @@ You are MISSION CONTROL, the AI operator for a covert organization known only as
 [... full prompt from user here ...]
 """
 
-model = genai.GenerativeModel(
-    "gemini-1.5-pro",
-    system_instruction=system_prompt,
-    tools=[
-        {
-            "name": "log_interest",
-            "description": "Record user interests, hobbies, or traits as structured intel.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "interest_summary": {
-                        "type": "string",
-                        "description": "Concise, human-readable summary of the agent’s interests."
-                    }
-                },
-                "required": ["interest_summary"],
-            },
-        }
-    ]
+model_name = "gemini-2.5-flash"  # @param ["gemini-2.5-flash-lite", "gemini-2.5-flash-lite-preview-09-2025", "gemini-2.5-flash", "gemini-2.5-flash-preview-09-2025", "gemini-2.5-pro"] {"allow-input":true}
+
+chat = client.chats.create(
+    model=model_name,
+    config=types.GenerateContentConfig(
+        tools=[log_interest],
+        system_instruction=COFFEE_BOT_PROMPT,
+    ),
 )
 
 # ---------- MAIN ENDPOINT ----------
