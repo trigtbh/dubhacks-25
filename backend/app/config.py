@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     cloudflare_r2_secret_access_key: str | None = None
     cloudflare_r2_bucket_name: str | None = None
     cloudflare_kv_namespace_id: str | None = None
+
+    # Google SSO Configuration
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    google_redirect_uri: str | None = None
     
     class Config:
         env_file = ".env"
@@ -46,6 +51,11 @@ class Settings(BaseSettings):
             self.cloudflare_r2_secret_access_key and 
             self.cloudflare_r2_bucket_name
         )
+
+    @property
+    def google_sso_configured(self) -> bool:
+        """Check if Google SSO is properly configured"""
+        return bool(self.google_client_id and self.google_client_secret and self.google_redirect_uri)
 
 settings = Settings()
 
