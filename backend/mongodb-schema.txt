@@ -1,0 +1,23 @@
+Proposed database schema:
+
+User:
+google_id: string (Primary Key)
+name: string
+email: string
+profile_picture: string
+embedding: <refers to embedding table>
+
+UserSession:
+token: string (primary key)
+google_id: string (refers to User)
+
+Embedding:
+- To be interated on
+
+Events:
+id: string (Primary key)
+name: string 
+
+Photos:
+key: <a pointer to S3 object key>
+user: <refers to google_id>
