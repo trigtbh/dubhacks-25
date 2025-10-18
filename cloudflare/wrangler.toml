@@ -1,0 +1,21 @@
+# Wrangler configuration for Cloudflare D1 and KV
+# This file is used to manage your Cloudflare resources
+
+name = "unfreeze-db"
+compatibility_date = "2024-01-01"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "unfreeze-db"
+database_id = "" # Fill this after creating the database
+
+# KV Namespace binding
+[[kv_namespaces]]
+binding = "KV"
+id = "" # Fill this after creating the namespace
+
+# Environment variables (add to Cloudflare dashboard or .dev.vars file)
+# [vars]
+# ENVIRONMENT = "production"
+

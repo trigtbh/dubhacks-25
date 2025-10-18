@@ -3,11 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from app.config import settings
 from app.api import routes
-from app.api import supabase_routes
+from app.api import cloudflare_routes
 
 app = FastAPI(
     title="Unfreeze API",
-    description="Backend API for the Unfreeze application",
+    description="Backend API for the Unfreeze application - Running on Oracle Cloud with Cloudflare services",
     version="1.0.0"
 )
 
@@ -22,7 +22,7 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(routes.router)
-app.include_router(supabase_routes.router)
+app.include_router(cloudflare_routes.router)
 
 @app.get("/")
 async def root():
@@ -40,9 +40,14 @@ async def health_check():
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
+        "platform": {
+            "hosting": "Oracle Cloud",
+            "services": "Cloudflare (D1, KV)"
+        },
         "services": {
             "api": "operational",
-            "supabase": "not_configured" if not settings.supabase_url else "configured"
+            "cloudflare_d1": "configured" if settings.cloudflare_d1_configured else "not_configured",
+            "cloudflare_kv": "configured" if settings.cloudflare_kv_namespace_id else "not_configured"
         }
     }
 

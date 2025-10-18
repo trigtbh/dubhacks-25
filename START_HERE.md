@@ -1,84 +1,160 @@
 # 👋 Welcome to Unfreeze!
 
-You now have a fully configured full-stack application ready for development!
+A full-stack app running on **Oracle Cloud** with **Cloudflare** services (D1 database & KV storage).
 
 ## 🎯 What You Have
 
 ✅ **Frontend**: Next.js 14 with TypeScript + Tailwind CSS  
-✅ **Backend**: FastAPI with Python  
-✅ **Database**: Supabase integration ready  
-✅ **Documentation**: Complete guides and examples  
-✅ **Setup Scripts**: Automated installation  
+✅ **Backend**: FastAPI (Python) for Oracle Cloud  
+✅ **Database**: Cloudflare D1 (SQLite-compatible)  
+✅ **Storage**: Cloudflare KV (Key-Value)  
+✅ **Documentation**: Complete setup guides  
 
-## 🚀 Get Started in 3 Steps
+## 🏗️ Architecture
 
-### Step 1: Run Setup
+```
+┌─────────────────┐
+│  Cloudflare     │
+│  Pages          │  ← Frontend (Next.js)
+│  (Frontend)     │
+└────────┬────────┘
+         │
+         │ API Calls
+         ↓
+┌─────────────────┐     ┌──────────────────┐
+│  Oracle Cloud   │────→│  Cloudflare      │
+│  Compute        │     │  - D1 Database   │
+│  (FastAPI)      │←────│  - KV Storage    │
+└─────────────────┘     └──────────────────┘
+```
+
+## 🚀 Quick Setup (3 Steps)
+
+### Step 1: Install Dependencies
+
 ```bash
 chmod +x setup.sh
 ./setup.sh
 ```
 
-### Step 2: Start Backend
+### Step 2: Setup Cloudflare Services
+
+```bash
+# Install Wrangler CLI
+npm install -g wrangler
+
+# Login to Cloudflare
+wrangler login
+
+# Create D1 database
+cd cloudflare
+wrangler d1 create unfreeze-db
+
+# Initialize schema
+wrangler d1 execute unfreeze-db --file=./schema.sql
+
+# Create KV namespace
+wrangler kv:namespace create "KV"
+```
+
+**Copy the IDs** and add to `backend/.env`:
+```env
+CLOUDFLARE_ACCOUNT_ID=your_account_id
+CLOUDFLARE_API_TOKEN=your_api_token
+CLOUDFLARE_D1_DATABASE_ID=from_wrangler_output
+CLOUDFLARE_KV_NAMESPACE_ID=from_wrangler_output
+```
+
+### Step 3: Start Development
+
+**Terminal 1 - Backend**
 ```bash
 cd backend
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate
 python run.py
 ```
 
-✅ Backend running at http://localhost:8000  
-📚 API Docs at http://localhost:8000/docs
-
-### Step 3: Start Frontend (New Terminal)
+**Terminal 2 - Frontend**
 ```bash
 cd frontend
 npm run dev
 ```
 
-✅ Frontend running at http://localhost:3000
+Visit:
+- 🎨 Frontend: http://localhost:3000
+- 🔌 API: http://localhost:8000
+- 📚 API Docs: http://localhost:8000/docs
 
-## 📖 Documentation
+## 📚 Full Documentation
 
-- **[QUICKSTART.md](./QUICKSTART.md)** - Get running in 5 minutes
-- **[README.md](./README.md)** - Full documentation
-- **[PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** - Architecture details
-- **[frontend/README.md](./frontend/README.md)** - Frontend docs
+- **[README.md](./README.md)** - Complete overview
+- **[QUICKSTART.md](./QUICKSTART.md)** - Detailed setup
+- **[cloudflare/README.md](./cloudflare/README.md)** - Cloudflare guide
 - **[backend/README.md](./backend/README.md)** - Backend docs
+- **[PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** - Architecture
 
-## 🎨 What's Included
+## 🧪 Test Your Setup
 
-### Frontend Features
-- ⚡ Next.js 14 with App Router
-- 🎯 TypeScript for type safety
-- 💅 Tailwind CSS with dark mode
-- 📱 Fully responsive design
-- 🔄 API integration examples
+### Test Backend
+```bash
+curl http://localhost:8000/health
+```
 
-### Backend Features
-- ⚡ FastAPI with async support
-- 📝 Auto-generated API docs
-- 🗄️ Supabase ready
-- 🔒 CORS configured
-- ⚙️ Environment-based config
+### Test Cloudflare D1
+```bash
+curl http://localhost:8000/cloudflare/d1/status
+```
 
-## 🔧 Optional: Add Supabase
+### Test Cloudflare KV
+```bash
+curl http://localhost:8000/cloudflare/kv/status
+```
 
-1. Create project at [supabase.com](https://supabase.com)
-2. Get your URL and Key
-3. Add to `backend/.env`:
-   ```env
-   SUPABASE_URL=your-url
-   SUPABASE_KEY=your-key
-   ```
-4. Test: http://localhost:8000/supabase/status
+## 🗄️ Database Operations
 
-## 🎯 Next Steps
+### Query D1 Database
+```bash
+# Via Wrangler
+wrangler d1 execute unfreeze-db --command="SELECT * FROM users"
 
-1. **Customize the UI** - Edit `frontend/app/page.tsx`
-2. **Add API Endpoints** - Add routes in `backend/app/api/routes.py`
-3. **Connect Database** - Use Supabase client in your routes
-4. **Build Features** - Create your hackathon project!
+# Via API
+curl -X POST http://localhost:8000/cloudflare/d1/query \
+  -H "Content-Type: application/json" \
+  -d '{"sql":"SELECT * FROM users","params":[]}'
+```
 
-## 📝 Quick Reference
+### Use KV Storage
+```bash
+# Store value
+curl -X PUT http://localhost:8000/cloudflare/kv \
+  -H "Content-Type: application/json" \
+  -d '{"key":"test","value":"Hello World"}'
+
+# Get value
+curl http://localhost:8000/cloudflare/kv/test
+```
+
+## 🚀 Deployment
+
+### Backend → Oracle Cloud
+
+1. Create Oracle Cloud Compute instance
+2. SSH into instance
+3. Clone repo and install dependencies
+4. Add `.env` with Cloudflare credentials
+5. Run with systemd or PM2
+
+See [backend/README.md](./backend/README.md) for details.
+
+### Frontend → Cloudflare Pages
+
+1. Push to GitHub
+2. Connect to Cloudflare Pages
+3. Set build command: `cd frontend && npm run build`
+4. Add `NEXT_PUBLIC_API_URL` environment variable
+5. Deploy!
+
+## 🔧 Common Commands
 
 ```bash
 # Backend
@@ -90,47 +166,60 @@ python run.py
 cd frontend
 npm run dev
 
-# Install new packages
-pip install package_name          # Backend
-npm install package_name          # Frontend
+# Cloudflare D1
+wrangler d1 list
+wrangler d1 execute unfreeze-db --command="SQL HERE"
+
+# Cloudflare KV
+wrangler kv:key put --namespace-id=YOUR_ID "key" "value"
+wrangler kv:key get --namespace-id=YOUR_ID "key"
 ```
 
 ## ❓ Troubleshooting
 
-**Port already in use?**
-```bash
-# Kill process on port 8000 (backend)
-lsof -ti:8000 | xargs kill -9
+**Cloudflare credentials not working?**
+- Double-check Account ID in dashboard
+- Ensure API token has D1 and KV permissions
+- Verify database and namespace IDs
 
-# Kill process on port 3000 (frontend)
-lsof -ti:3000 | xargs kill -9
+**Backend can't connect to Cloudflare?**
+```bash
+# Test manually with curl
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.cloudflare.com/client/v4/accounts/YOUR_ACCOUNT_ID/d1/database
 ```
 
-**Virtual environment issues?**
-```bash
-cd backend
-rm -rf venv
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+**Frontend can't reach backend?**
+- Check `NEXT_PUBLIC_API_URL` in `.env.local`
+- Ensure backend is running on port 8000
+- Check CORS settings in `backend/app/config.py`
 
-**Frontend issues?**
-```bash
-cd frontend
-rm -rf node_modules .next
-npm install
-```
+## 💡 Quick Tips
 
-## 🎉 You're All Set!
+1. **Cloudflare is free tier friendly** - D1 and KV have generous limits
+2. **Oracle Cloud has free tier** - Perfect for hosting the backend
+3. **Use Wrangler for DB management** - Easier than API calls
+4. **Check API docs** at http://localhost:8000/docs - Interactive!
+5. **D1 is SQLite** - Use standard SQLite syntax
 
-Visit http://localhost:3000 to see your app running!
+## 🎯 Next Steps
 
-Check out http://localhost:8000/docs for interactive API documentation.
+1. ✅ Get everything running locally
+2. 📝 Customize the database schema in `cloudflare/schema.sql`
+3. 🎨 Build your UI in `frontend/app/page.tsx`
+4. 🔌 Add API endpoints in `backend/app/api/routes.py`
+5. 🚀 Deploy to production!
+
+## 📖 Resources
+
+- [Cloudflare D1 Docs](https://developers.cloudflare.com/d1/)
+- [Cloudflare KV Docs](https://developers.cloudflare.com/kv/)
+- [Oracle Cloud Free Tier](https://www.oracle.com/cloud/free/)
+- [FastAPI Docs](https://fastapi.tiangolo.com/)
+- [Next.js Docs](https://nextjs.org/docs)
 
 ---
 
-**Good luck building something amazing!** 🚀
+**Happy Hacking!** 🎉
 
-Need help? Check the documentation files or the code comments for examples.
-
+For questions, check the documentation or API docs at http://localhost:8000/docs

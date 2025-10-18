@@ -1,94 +1,255 @@
 # Unfreeze Backend
 
-FastAPI backend with Supabase integration support.
+FastAPI backend designed to run on Oracle Cloud with Cloudflare D1 database and KV storage.
+
+## Architecture
+
+- **Runtime**: Python 3.9+ on Oracle Cloud
+- **Framework**: FastAPI (async)
+- **Database**: Cloudflare D1 (SQLite-compatible)
+- **Cache/Storage**: Cloudflare KV
+- **API Style**: RESTful with auto-docs
 
 ## Getting Started
 
-1. Create and activate virtual environment:
+### 1. Install Dependencies
+
 ```bash
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-2. Install dependencies:
-```bash
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. Create `.env` file:
+### 2. Configure Cloudflare
+
+See [../cloudflare/README.md](../cloudflare/README.md) for detailed setup.
+
+Quick setup:
 ```bash
-cp .env.example .env
+# Install Wrangler CLI
+npm install -g wrangler
+
+# Login to Cloudflare
+wrangler login
+
+# Create D1 database
+wrangler d1 create unfreeze-db
+
+# Create KV namespace
+wrangler kv:namespace create "KV"
 ```
 
-4. Start the server:
+### 3. Environment Variables
+
+Copy `.env.example` to `.env` and fill in your Cloudflare credentials:
+
+```env
+CLOUDFLARE_ACCOUNT_ID=your_account_id
+CLOUDFLARE_API_TOKEN=your_api_token
+CLOUDFLARE_D1_DATABASE_ID=your_database_id
+CLOUDFLARE_KV_NAMESPACE_ID=your_kv_namespace_id
+```
+
+### 4. Start Server
+
 ```bash
 python run.py
 ```
 
-The API will be available at [http://localhost:8000](http://localhost:8000)
+API available at: http://localhost:8000
+Docs available at: http://localhost:8000/docs
 
 ## API Documentation
 
 Once running, visit:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-
-## Environment Variables
-
-Required:
-- `API_HOST` - Host to bind to (default: 0.0.0.0)
-- `API_PORT` - Port to bind to (default: 8000)
-- `ALLOWED_ORIGINS` - CORS allowed origins
-
-Optional (for Supabase):
-- `SUPABASE_URL` - Your Supabase project URL
-- `SUPABASE_KEY` - Your Supabase anon key
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
 
 ## Project Structure
 
 ```
 backend/
 ├── app/
-│   ├── main.py           # FastAPI application
-│   ├── config.py         # Configuration
+│   ├── main.py              # FastAPI app
+│   ├── config.py            # Environment config
 │   ├── api/
-│   │   ├── routes.py     # Main API routes
-│   │   └── supabase_routes.py  # Supabase endpoints
+│   │   ├── routes.py        # Main routes
+│   │   └── cloudflare_routes.py  # Cloudflare endpoints
 │   └── services/
-│       └── supabase_client.py  # Supabase integration
+│       └── cloudflare_client.py  # D1 & KV client
 ├── requirements.txt
-└── run.py               # Development server
+└── run.py
 ```
 
-## Supabase Integration
+## Using Cloudflare Services
 
-1. Create a project at [supabase.com](https://supabase.com)
-2. Add your credentials to `.env`:
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-anon-key
-```
+### D1 Database
 
-3. Use the client in your code:
 ```python
-from app.services.supabase_client import get_supabase_client
+from app.services.cloudflare_client import get_d1_client
 
-supabase = get_supabase_client()
-if supabase:
-    response = supabase.table('table_name').select("*").execute()
+d1 = get_d1_client()
+
+# Query with parameters
+result = await d1.query(
+    "SELECT * FROM users WHERE id = ?",
+    [user_id]
+)
+
+# Batch queries
+results = await d1.batch([
+    ("INSERT INTO users (name) VALUES (?)", ["John"]),
+    ("SELECT * FROM users", [])
+])
 ```
 
-## Features
+### KV Storage
 
-- ⚡ FastAPI with async support
-- 🔒 CORS configured
-- 📝 Auto-generated docs
-- 🗄️ Supabase ready
-- ⚙️ Environment config
-- 🎯 Type hints with Pydantic
+```python
+from app.services.cloudflare_client import get_kv_client
 
-## Learn More
+kv = get_kv_client()
+
+# Store value
+await kv.put("user:123", "John Doe", expiration_ttl=3600)
+
+# Get value
+value = await kv.get("user:123")
+
+# Delete value
+await kv.delete("user:123")
+
+# List keys
+keys = await kv.list_keys(prefix="user:", limit=100)
+```
+
+## API Endpoints
+
+### Health & Status
+- `GET /` - Health check
+- `GET /health` - Detailed health status
+
+### Application
+- `POST /unfreeze` - Main application endpoint
+- `GET /status` - Application status
+
+### Cloudflare D1
+- `GET /cloudflare/d1/status` - Check D1 connection
+- `POST /cloudflare/d1/query` - Execute SQL query
+- `POST /cloudflare/d1/batch` - Execute batch queries
+
+### Cloudflare KV
+- `GET /cloudflare/kv/status` - Check KV status
+- `GET /cloudflare/kv/{key}` - Get value by key
+- `PUT /cloudflare/kv` - Store key-value pair
+- `DELETE /cloudflare/kv/{key}` - Delete key
+- `GET /cloudflare/kv/list/keys` - List keys
+
+### Info
+- `GET /cloudflare/info` - Cloudflare services info
+
+## Deployment on Oracle Cloud
+
+### Option 1: Direct Deployment
+
+```bash
+# On Oracle Cloud instance
+git clone your-repo
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Add environment variables
+nano .env
+
+# Run with uvicorn
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+### Option 2: With Systemd (Production)
+
+Create `/etc/systemd/system/unfreeze-api.service`:
+
+```ini
+[Unit]
+Description=Unfreeze FastAPI
+After=network.target
+
+[Service]
+User=opc
+WorkingDirectory=/home/opc/backend
+Environment="PATH=/home/opc/backend/venv/bin"
+ExecStart=/home/opc/backend/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then:
+```bash
+sudo systemctl enable unfreeze-api
+sudo systemctl start unfreeze-api
+sudo systemctl status unfreeze-api
+```
+
+### Option 3: With Nginx Reverse Proxy
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `API_HOST` | No | Host to bind (default: 0.0.0.0) |
+| `API_PORT` | No | Port to bind (default: 8000) |
+| `ENVIRONMENT` | No | development/production |
+| `ALLOWED_ORIGINS` | No | CORS origins |
+| `CLOUDFLARE_ACCOUNT_ID` | Yes* | Your Cloudflare account ID |
+| `CLOUDFLARE_API_TOKEN` | Yes* | API token with D1/KV permissions |
+| `CLOUDFLARE_D1_DATABASE_ID` | Yes* | D1 database ID |
+| `CLOUDFLARE_KV_NAMESPACE_ID` | No | KV namespace ID |
+
+*Required for Cloudflare features
+
+## Development
+
+```bash
+# Start dev server with auto-reload
+python run.py
+
+# Or use uvicorn directly
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+## Testing
+
+```bash
+# Install test dependencies
+pip install pytest pytest-asyncio httpx
+
+# Run tests
+pytest
+
+# With coverage
+pytest --cov=app tests/
+```
+
+## Resources
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Supabase Documentation](https://supabase.com/docs)
-
+- [Cloudflare D1 Docs](https://developers.cloudflare.com/d1/)
+- [Cloudflare KV Docs](https://developers.cloudflare.com/kv/)
+- [Oracle Cloud Docs](https://docs.oracle.com/en-us/iaas/Content/home.htm)
