@@ -59,4 +59,3 @@ if __name__ == "__main__":
         port=settings.api_port,
         reload=True if settings.environment == "development" else False
     )
-
