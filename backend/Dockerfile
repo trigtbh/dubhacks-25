@@ -28,4 +28,4 @@ COPY . .
 
 # Specify the command to run when the container starts.
 # This executes `python3 run.py`
-CMD ["python3", "run.py"]
+CMD ["uv", "run", "run.py"]
