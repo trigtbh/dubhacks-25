@@ -5,16 +5,15 @@ FROM python:3-alpine
 # Set the working directory inside the container
 WORKDIR /app
 
+
+# Install build tools for Alpine (C/C++ compilers, Rust, etc.)
+RUN apk add --no-cache build-base cargo rust
+
 # Install 'uv', the fast Python package installer.
-# We use --no-cache-dir to keep the image layer slim.
 RUN pip install --no-cache-dir uv
 
 # Copy only the requirements file first.
-# This step is cached by Docker. As long as your requirements.txt
-# doesn't change, Docker will reuse this layer and the next one.
 COPY requirements.txt .
-# RUN apt-get update && apt-get install -y build-essential libpq-dev
-# RUN apk add --no-cache build-base cargo rust
 
 # Install Python dependencies using uv.
 RUN uv venv --system

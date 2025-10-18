@@ -4,6 +4,7 @@ from datetime import datetime
 from app.config import settings
 from app.api import routes
 from app.api import cloudflare_routes
+from app.api import vectorization_routes
 
 app = FastAPI(
     title="Unfreeze API",
@@ -23,6 +24,7 @@ app.add_middleware(
 # Include API routes
 app.include_router(routes.router)
 app.include_router(cloudflare_routes.router)
+app.include_router(vectorization_routes.router)
 
 @app.get("/")
 async def root():
