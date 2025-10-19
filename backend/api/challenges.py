@@ -35,16 +35,21 @@ async def create_all_challenges():
     
     for user in cursor["users"].find({}, {"_id": 1, "category": 1}):
         category = user.get("category", "Uncategorized")
+        if category == "Uncategorized": continue
+        cursor["users"].update_one({"_id": user["_id"]}, {"$set": {"current_mission": {}}})
         if category not in clusters:
             clusters[category] = set()
         clusters[category].add(user["_id"])
+
+    print(clusters)
+
 
     for category, users in clusters.items():
         challenge_id = str(uuid4())
         if len(users) < 2: continue
 
         c_index = random.randint(0, len(LOCATIONS.items()) - 1)
-        print(LOCATIONS, c_index)
+        #print(LOCATIONS, c_index)
         challenge = {
             "challenge_id": challenge_id,
             "category": category,
@@ -60,16 +65,16 @@ async def create_all_challenges():
         numbers = set()
         while len(numbers) < len(users):
             numbers.add(random.randint(100, 999))
-            print(numbers, flush=True)
+            #print(numbers, flush=True)
         numbers = list(numbers)
 
 
         
 
         for i, user_id in enumerate(users):
-            print(users, (i + 1) % len(users))
+            #print(users, (i + 1) % len(users))
             target_user = cursor["users"].find_one({"_id": list(users)[(i + 1) % len(users)]})
-            print(target_user, flush=True)
+            #print(target_user, flush=True)
             cursor["users"].update_one(
                 {"_id": user_id},
                 {"$set": {

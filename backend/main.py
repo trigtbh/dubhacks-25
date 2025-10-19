@@ -40,7 +40,7 @@ async def _periodic_challenge_creator():
             # don't crash the background task; log and continue
             print("Error running create_all_challenges:")
             traceback.print_exc()
-        await asyncio.sleep(15)
+        await asyncio.sleep(15 * 60)
 
 
 @app.on_event("startup")
