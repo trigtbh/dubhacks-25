@@ -9,6 +9,9 @@ This client provides access to Cloudflare services while running on Oracle Cloud
 
 from typing import Optional, Any, Dict, List
 import httpx
+import aioboto3
+from botocore.config import Config
+from datetime import timedelta
 from app.config import settings
 
 class CloudflareD1Client:
@@ -184,11 +187,199 @@ class CloudflareKVClient:
             return [item["name"] for item in data.get("result", [])]
 
 
+class CloudflareR2Client:
+    """
+    Cloudflare R2 (Object Storage) client using S3-compatible API
+    
+    Usage:
+        r2 = get_r2_client()
+        if r2:
+            # Generate presigned URL for upload
+            upload_url = await r2.generate_presigned_upload_url("myfile.pdf", expires_in=3600)
+            
+            # Generate presigned URL for download
+            download_url = await r2.generate_presigned_download_url("myfile.pdf", expires_in=3600)
+            
+            # Upload file directly
+            await r2.upload_file("myfile.pdf", file_data)
+            
+            # Download file directly
+            data = await r2.download_file("myfile.pdf")
+    """
+    
+    def __init__(self, account_id: str, access_key_id: str, secret_access_key: str, bucket_name: str):
+        self.account_id = account_id
+        self.access_key_id = access_key_id
+        self.secret_access_key = secret_access_key
+        self.bucket_name = bucket_name
+        self.endpoint_url = f"https://{account_id}.r2.cloudflarestorage.com"
+        
+        # Configure boto3 for R2
+        self.config = Config(
+            region_name='auto',
+            signature_version='s3v4',
+            s3={'addressing_style': 'path'}
+        )
+    
+    def _get_session(self):
+        """Get aioboto3 session"""
+        return aioboto3.Session(
+            aws_access_key_id=self.access_key_id,
+            aws_secret_access_key=self.secret_access_key
+        )
+    
+    async def generate_presigned_upload_url(
+        self, 
+        key: str, 
+        expires_in: int = 3600,
+        content_type: Optional[str] = None
+    ) -> str:
+        """
+        Generate a presigned URL for uploading an object to R2
+        
+        Args:
+            key: The object key (filename)
+            expires_in: URL expiration time in seconds (default: 1 hour)
+            content_type: Optional content type for the upload
+            
+        Returns:
+            Presigned URL string
+        """
+        session = self._get_session()
+        async with session.client('s3', endpoint_url=self.endpoint_url, config=self.config) as s3:
+            params = {
+                'Bucket': self.bucket_name,
+                'Key': key
+            }
+            if content_type:
+                params['ContentType'] = content_type
+            
+            url = await s3.generate_presigned_url(
+                'put_object',
+                Params=params,
+                ExpiresIn=expires_in
+            )
+            return url
+    
+    async def generate_presigned_download_url(
+        self, 
+        key: str, 
+        expires_in: int = 3600,
+        filename: Optional[str] = None
+    ) -> str:
+        """
+        Generate a presigned URL for downloading an object from R2
+        
+        Args:
+            key: The object key (filename)
+            expires_in: URL expiration time in seconds (default: 1 hour)
+            filename: Optional filename for Content-Disposition header
+            
+        Returns:
+            Presigned URL string
+        """
+        session = self._get_session()
+        async with session.client('s3', endpoint_url=self.endpoint_url, config=self.config) as s3:
+            params = {
+                'Bucket': self.bucket_name,
+                'Key': key
+            }
+            if filename:
+                params['ResponseContentDisposition'] = f'attachment; filename="{filename}"'
+            
+            url = await s3.generate_presigned_url(
+                'get_object',
+                Params=params,
+                ExpiresIn=expires_in
+            )
+            return url
+    
+    async def upload_file(self, key: str, data: bytes, content_type: Optional[str] = None) -> bool:
+        """
+        Upload a file directly to R2
+        
+        Args:
+            key: The object key (filename)
+            data: File data as bytes
+            content_type: Optional content type
+            
+        Returns:
+            True if successful
+        """
+        session = self._get_session()
+        async with session.client('s3', endpoint_url=self.endpoint_url, config=self.config) as s3:
+            params = {
+                'Bucket': self.bucket_name,
+                'Key': key,
+                'Body': data
+            }
+            if content_type:
+                params['ContentType'] = content_type
+            
+            await s3.put_object(**params)
+            return True
+    
+    async def download_file(self, key: str) -> bytes:
+        """
+        Download a file directly from R2
+        
+        Args:
+            key: The object key (filename)
+            
+        Returns:
+            File data as bytes
+        """
+        session = self._get_session()
+        async with session.client('s3', endpoint_url=self.endpoint_url, config=self.config) as s3:
+            response = await s3.get_object(Bucket=self.bucket_name, Key=key)
+            async with response['Body'] as stream:
+                return await stream.read()
+    
+    async def delete_file(self, key: str) -> bool:
+        """
+        Delete a file from R2
+        
+        Args:
+            key: The object key (filename)
+            
+        Returns:
+            True if successful
+        """
+        session = self._get_session()
+        async with session.client('s3', endpoint_url=self.endpoint_url, config=self.config) as s3:
+            await s3.delete_object(Bucket=self.bucket_name, Key=key)
+            return True
+    
+    async def list_files(self, prefix: Optional[str] = None, max_keys: int = 1000) -> List[Dict[str, Any]]:
+        """
+        List files in the R2 bucket
+        
+        Args:
+            prefix: Optional prefix to filter files
+            max_keys: Maximum number of keys to return
+            
+        Returns:
+            List of file metadata dictionaries
+        """
+        session = self._get_session()
+        async with session.client('s3', endpoint_url=self.endpoint_url, config=self.config) as s3:
+            params = {
+                'Bucket': self.bucket_name,
+                'MaxKeys': max_keys
+            }
+            if prefix:
+                params['Prefix'] = prefix
+            
+            response = await s3.list_objects_v2(**params)
+            return response.get('Contents', [])
+
+
 class CloudflareClient:
     """Main Cloudflare client that aggregates all services"""
     
     _d1_instance: Optional[CloudflareD1Client] = None
     _kv_instance: Optional[CloudflareKVClient] = None
+    _r2_instance: Optional[CloudflareR2Client] = None
     
     @classmethod
     def get_d1_client(cls) -> Optional[CloudflareD1Client]:
@@ -219,6 +410,22 @@ class CloudflareClient:
             )
         
         return cls._kv_instance
+    
+    @classmethod
+    def get_r2_client(cls) -> Optional[CloudflareR2Client]:
+        """Get R2 object storage client instance"""
+        if not settings.cloudflare_r2_configured:
+            return None
+        
+        if cls._r2_instance is None:
+            cls._r2_instance = CloudflareR2Client(
+                settings.cloudflare_r2_account_id,
+                settings.cloudflare_r2_access_key_id,
+                settings.cloudflare_r2_secret_access_key,
+                settings.cloudflare_r2_bucket_name
+            )
+        
+        return cls._r2_instance
 
 
 # Helper functions
@@ -230,4 +437,9 @@ def get_d1_client() -> Optional[CloudflareD1Client]:
 def get_kv_client() -> Optional[CloudflareKVClient]:
     """Get Cloudflare KV storage client"""
     return CloudflareClient.get_kv_client()
+
+
+def get_r2_client() -> Optional[CloudflareR2Client]:
+    """Get Cloudflare R2 object storage client"""
+    return CloudflareClient.get_r2_client()
 

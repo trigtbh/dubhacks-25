@@ -11,3 +11,4 @@ aioboto3
 google-genai
 scikit-learn
 numpy
+pillow

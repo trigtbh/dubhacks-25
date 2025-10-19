@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     cloudflare_account_id: str | None = None
     cloudflare_api_token: str | None = None
     cloudflare_d1_database_id: str | None = None
+    cloudflare_r2_account_id: str | None = None
     cloudflare_r2_access_key_id: str | None = None
     cloudflare_r2_secret_access_key: str | None = None
     cloudflare_r2_bucket_name: str | None = None
@@ -35,6 +36,16 @@ class Settings(BaseSettings):
     def cloudflare_d1_configured(self) -> bool:
         """Check if Cloudflare D1 database is configured"""
         return bool(self.cloudflare_account_id and self.cloudflare_api_token and self.cloudflare_d1_database_id)
+    
+    @property
+    def cloudflare_r2_configured(self) -> bool:
+        """Check if Cloudflare R2 storage is configured"""
+        return bool(
+            self.cloudflare_r2_account_id and 
+            self.cloudflare_r2_access_key_id and 
+            self.cloudflare_r2_secret_access_key and 
+            self.cloudflare_r2_bucket_name
+        )
 
 settings = Settings()
 
