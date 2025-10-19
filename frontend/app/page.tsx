@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Crosshair, Crown, Edit, UserLock, MapPin, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
+import { User, Crosshair, Crown, Edit, UserLock, MapPin, ShieldCheck, ChevronDown, ChevronUp, Image } from 'lucide-react';
 import Onboarding from './components/Onboarding';
 
 export default function Home() {
@@ -57,11 +57,13 @@ export default function Home() {
       // Swipe left - go to next page
       if (currentPage === 'page1') setCurrentPage('page2');
       else if (currentPage === 'page2') setCurrentPage('page3');
+      else if (currentPage === 'page3') setCurrentPage('page4');
     }
     
     if (isRightSwipe) {
       // Swipe right - go to previous page
-      if (currentPage === 'page3') setCurrentPage('page2');
+      if (currentPage === 'page4') setCurrentPage('page3');
+      else if (currentPage === 'page3') setCurrentPage('page2');
       else if (currentPage === 'page2') setCurrentPage('page1');
     }
   };
@@ -83,7 +85,7 @@ export default function Home() {
                 <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setIsAgentInfoCollapsed(!isAgentInfoCollapsed)}>
                   <h2 className="text-2xl font-semibold font-mono" style={{color: '#33ff66'}}>Agent Info</h2>
                   <div className="flex items-center gap-2">
-                    <button 
+                <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setIsEditingProfile(true);
@@ -91,7 +93,7 @@ export default function Home() {
                       className="hover:scale-110 transition-transform"
                     >
                       <Edit size={20} style={{color: 'rgba(51, 255, 102, 0.8)'}} />
-                    </button>
+                </button>
                     {isAgentInfoCollapsed ? (
                       <ChevronDown size={24} style={{color: 'rgba(51, 255, 102, 0.8)'}} />
                     ) : (
@@ -113,7 +115,7 @@ export default function Home() {
             <div className="mx-6 mb-6 fade-in">
               <div className="rounded-lg border neon-border" style={{backgroundColor: 'rgba(26, 26, 26, 0.6)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(5px)'}}>
                 <div className="p-4 border-b" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
-                  <h2 className="text-2xl font-semibold font-mono" style={{color: '#33ff66'}}>Previous Missions</h2>
+                  <h2 className="text-2xl font-semibold font-mono" style={{color: '#33ff66'}}>Mission Badges</h2>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
                   <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
@@ -164,7 +166,7 @@ export default function Home() {
             <div className="px-6 mb-8 text-center fade-in">
               <div className="text-6xl font-mono font-bold pulse" style={{
                 color: timeLeft < 60 ? '#FF0000' : timeLeft < 300 ? '#FF9500' : '#FF0000',
-                textShadow: timeLeft < 60 ? '0 0 20px #FF0000, 0 0 40px #FF0000' : '0 0 10px #FF0000, 0 0 20px #FF0000'
+                textShadow: timeLeft < 60 ? '0 0 10px #FF0000, 0 0 20px #FF0000' : '0 0 5px #FF0000, 0 0 10px #FF0000'
               }}>
                 {formatTime(timeLeft)}
               </div>
@@ -295,6 +297,15 @@ export default function Home() {
             </div>
           </div>
         );
+      case 'page4':
+        return (
+          <div className="h-full overflow-y-auto">
+            {/* Header */}
+            <div className="p-6 pb-4 fade-in">
+              <h1 className="text-4xl font-bold font-mono mb-2 neon-glow" style={{color: '#33ff66'}}>Images TBD</h1>
+            </div>
+          </div>
+        );
       default:
         return <div className="flex items-center justify-center h-screen text-2xl font-bold">PROFILE</div>;
     }
@@ -364,6 +375,17 @@ export default function Home() {
             }}
           >
             <Crown size={24} />
+          </button>
+          <button
+            onClick={() => setCurrentPage('page4')}
+            className="flex-1 py-4 text-center flex items-center justify-center"
+            style={{
+              backgroundColor: currentPage === 'page4' ? '#33ff66' : 'transparent',
+              color: currentPage === 'page4' ? '#0d0d0d' : 'rgba(51, 255, 102, 0.7)',
+              boxShadow: currentPage === 'page4' ? '0 0 20px rgba(51, 255, 102, 0.4)' : 'none'
+            }}
+          >
+            <Image size={24} />
           </button>
         </div>
       </div>
