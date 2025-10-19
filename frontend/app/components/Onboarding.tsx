@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
-import Logo from './Logo';
-import AudioBar from './AudioBar';
+import Logo from '../components/Logo';
+import AudioBar from '../components/AudioBar';
 import TypingText from "@/components/text/typing-text";
 
 interface OnboardingProps {
@@ -235,14 +235,22 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   // Show final message and splash for EIGHTH page
   useEffect(() => {
     if (currentStep === 10) {
-      setShowFinalMessage(true);
       const t1 = setTimeout(() => {
-        setShowFinalSplash(true);
+        setShowFinalMessage(true);
         const t2 = setTimeout(() => {
-          onComplete();
-        }, 3000);
+          setShowTypingText(true);
+          const t3 = setTimeout(() => {
+            setShowAudioBar(false); // Hide audio bar before splash
+            setShowFinalSplash(true);
+            const t4 = setTimeout(() => {
+              onComplete();
+            }, 3000);
+            return () => clearTimeout(t4);
+          }, 18000);
+          return () => clearTimeout(t3);
+        }, 1000);
         return () => clearTimeout(t2);
-      }, 10000);
+      }, 1000);
       return () => clearTimeout(t1);
     }
   }, [currentStep]);
@@ -473,14 +481,16 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                   </button>
                 ))}
               </div>
-              <button
-                onClick={handleNext}
-                disabled={!selectedSpecialty}
-                className="mt-3 p-1.5 rounded disabled:opacity-50 transition-all hover:scale-105"
-                style={{ backgroundColor: '#2CFF05', color: '#0a0a0a', boxShadow: '0 0 10px rgba(51, 255, 102, 0.4)' }}
-              >
-                <ArrowRight size={16} />
-              </button>
+              <div className="flex justify-end mt-3">
+                <button
+                  onClick={handleNext}
+                  disabled={!selectedSpecialty}
+                  className="p-1.5 rounded disabled:opacity-50 transition-all hover:scale-105"
+                  style={{ backgroundColor: '#2CFF05', color: '#0a0a0a', boxShadow: '0 0 10px rgba(51, 255, 102, 0.4)' }}
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -546,13 +556,15 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                   </button>
                 ))}
               </div>
-              <button
-                onClick={handleNext}
-                className="mt-3 p-1.5 rounded transition-all hover:scale-105"
-                style={{ backgroundColor: '#2CFF05', color: '#0a0a0a', boxShadow: '0 0 10px rgba(51, 255, 102, 0.4)' }}
-              >
-                <ArrowRight size={16} />
-              </button>
+              <div className="flex justify-end mt-3">
+                <button
+                  onClick={handleNext}
+                  className="p-1.5 rounded transition-all hover:scale-105"
+                  style={{ backgroundColor: '#2CFF05', color: '#0a0a0a', boxShadow: '0 0 10px rgba(51, 255, 102, 0.4)' }}
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -752,14 +764,16 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                   </button>
                 ))}
               </div>
-              <button
-                onClick={handleNext}
-                disabled={!selectedPersonality}
-                className="mt-3 p-1.5 rounded disabled:opacity-50 transition-all hover:scale-105"
-                style={{ backgroundColor: '#2CFF05', color: '#0a0a0a', boxShadow: '0 0 10px rgba(51, 255, 102, 0.4)' }}
-              >
-                <ArrowRight size={16} />
-              </button>
+              <div className="flex justify-end mt-3">
+                <button
+                  onClick={handleNext}
+                  disabled={!selectedPersonality}
+                  className="p-1.5 rounded disabled:opacity-50 transition-all hover:scale-105"
+                  style={{ backgroundColor: '#2CFF05', color: '#0a0a0a', boxShadow: '0 0 10px rgba(51, 255, 102, 0.4)' }}
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -825,14 +839,16 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                   </button>
                 ))}
               </div>
-              <button
-                onClick={handleNext}
-                disabled={!selectedRiskLevel}
-                className="mt-3 p-1.5 rounded disabled:opacity-50 transition-all hover:scale-105"
-                style={{ backgroundColor: '#2CFF05', color: '#0a0a0a', boxShadow: '0 0 10px rgba(51, 255, 102, 0.4)' }}
-              >
-                <ArrowRight size={16} />
-              </button>
+              <div className="flex justify-end mt-3">
+                <button
+                  onClick={handleNext}
+                  disabled={!selectedRiskLevel}
+                  className="p-1.5 rounded disabled:opacity-50 transition-all hover:scale-105"
+                  style={{ backgroundColor: '#2CFF05', color: '#0a0a0a', boxShadow: '0 0 10px rgba(51, 255, 102, 0.4)' }}
+                >
+                  <ArrowRight size={16} />
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -863,7 +879,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
         {showTypingText && (
           <div className="absolute bottom-24 left-4 right-4">
             <TypingText
-              text={["> One last thing, Agent — please provide an secure comm channel for post-mission contact."]}
+              text={["> One last thing, Agent — please provide a secure comm channel for post-mission contact."]}
               typingSpeed={30}
               pauseDuration={0}
               showCursor={true}
@@ -917,17 +933,29 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
         </div>
 
         {/* Audio bar on top of spy symbol */}
-        <div className="absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 fade-in transition-all duration-1000 ease-in-out">
-          <AudioBar />
-        </div>
+        {showAudioBar && (
+          <div className="absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 fade-in transition-all duration-1000 ease-in-out">
+            <AudioBar />
+          </div>
+        )}
 
         {/* Final message */}
         {showFinalMessage && (
           <div className="absolute top-[50%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 fade-in">
             <div className="w-80 p-4 rounded-lg border neon-border" style={{ backgroundColor: 'rgba(26, 26, 26, 0.8)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(10px)' }}>
-              <div className="text-lg font-mono" style={{ color: 'rgba(51, 255, 102, 0.8)' }}>
-                {'>'} The Syndicate thanks you, Agent Phoenix. Now check out the interface Mission Control has designed for you, and get ready for your first mission. We'll be in touch.
-              </div>
+              {(
+                <TypingText
+                  text={["> The Syndicate thanks you, Agent Phoenix. Now check out the interface that Mission Control has designed for you, and get ready for your first mission. We'll be in touch."]}
+                  typingSpeed={30}
+                  pauseDuration={0}
+                  showCursor={true}
+                  cursorCharacter="█"
+                  className="text-lg font-mono"
+                  textColors={['rgba(51, 255, 102, 0.8)']}
+                  variableSpeed={{ min: 60, max: 90 }}
+                />
+              )
+              }
             </div>
           </div>
         )}

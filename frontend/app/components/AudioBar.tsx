@@ -1,4 +1,4 @@
-import audioImage from './audio.png';
+import audioImage from '../assets/audio.png';
 
 const AudioBar = () => {
   return (

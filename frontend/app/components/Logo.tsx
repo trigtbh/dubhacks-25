@@ -1,4 +1,4 @@
-import spyImage from './spy2.png';
+import spyImage from '../assets/spy2.png';
 
 const Logo = () => {
   return (

@@ -1,8 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Crosshair, Crown, Edit, UserLock, MapPin, ShieldCheck, ChevronDown, ChevronUp, Image } from 'lucide-react';
+import { User, Crosshair, Crown, Edit, UserLock, MapPin, ShieldCheck, ChevronDown, ChevronUp, Waypoints, X } from 'lucide-react';
 import Onboarding from './components/Onboarding';
+import img1 from './assets/stock/1.png';
+import img2 from './assets/stock/2.png';
+import img3 from './assets/stock/3.png';
+import img4 from './assets/stock/4.png';
+import img5 from './assets/stock/5.png';
+import img6 from './assets/stock/6.png';
+import img7 from './assets/stock/7.png';
+import img8 from './assets/stock/8.png';
+import img9 from './assets/stock/9.png';
+import img10 from './assets/stock/10.png';
 
 export default function Home() {
   const [currentPage, setCurrentPage] = useState('page1');
@@ -12,6 +22,21 @@ export default function Home() {
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isAgentInfoCollapsed, setIsAgentInfoCollapsed] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Images array
+  const images = [
+    { id: 1, src: img1 },
+    { id: 2, src: img2 },
+    { id: 3, src: img3 },
+    { id: 4, src: img4 },
+    { id: 5, src: img5 },
+    { id: 6, src: img6 },
+    { id: 7, src: img7 },
+    { id: 8, src: img8 },
+    { id: 9, src: img9 },
+    { id: 10, src: img10 },
+  ];
 
   // Countdown timer effect
   useEffect(() => {
@@ -302,8 +327,56 @@ export default function Home() {
           <div className="h-full overflow-y-auto">
             {/* Header */}
             <div className="p-6 pb-4 fade-in">
-              <h1 className="text-4xl font-bold font-mono mb-2 neon-glow" style={{color: '#33ff66'}}>Images TBD</h1>
+              <h1 className="text-4xl font-bold font-mono mb-2 neon-glow" style={{color: '#33ff66'}}>Mission Archive</h1>
             </div>
+
+            {/* Image Gallery */}
+            <div className="px-6 pb-6">
+              <div className="grid grid-cols-2 gap-4">
+                {images.map((image) => (
+                  <div
+                    key={image.id}
+                    className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => setSelectedImage(image.src.src)}
+                    style={{
+                      filter: 'grayscale(100%)',
+                      backgroundColor: 'rgba(26, 26, 26, 0.6)',
+                      border: '1px solid rgba(51, 255, 102, 0.4)'
+                    }}
+                  >
+                    <img
+                      src={image.src.src}
+                      alt={`Image ${image.id}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal */}
+            {selectedImage && (
+              <div 
+                className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
+                onClick={() => setSelectedImage(null)}
+              >
+                <div className="relative max-w-4xl max-h-full">
+                  <button
+                    onClick={() => setSelectedImage(null)}
+                    className="absolute -top-12 right-0 p-2 rounded-full hover:bg-gray-800 transition-colors"
+                    style={{ color: '#33ff66' }}
+                  >
+                    <X size={24} />
+                  </button>
+                  <img
+                    src={selectedImage}
+                    alt="Full size"
+                    className="max-w-full max-h-full object-contain rounded-lg"
+                    style={{ filter: 'none' }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         );
       default:
@@ -385,7 +458,7 @@ export default function Home() {
               boxShadow: currentPage === 'page4' ? '0 0 20px rgba(51, 255, 102, 0.4)' : 'none'
             }}
           >
-            <Image size={24} />
+            <Waypoints size={24} />
           </button>
         </div>
       </div>
