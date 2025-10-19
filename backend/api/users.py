@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from api.mongo import cursor
-from vectorization_service import classify
+from api.vectorization_service import classify
 
 user_router = APIRouter(prefix="/users", tags=["User Management"])
 
