@@ -1,6 +1,39 @@
 from fastapi import APIRouter, Request
 from api.mongo import cursor
 from api.vectorization_service import classify
+from google import genai
+from google.genai import types
+import os
+
+# Initialize Gemini client
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+def generate_summary(agent_name: str, category: int, user_inputs: list) -> str:
+    inputs_text = " ".join(user_inputs)
+    
+    prompt = f"""
+    Based on the following user inputs and their personality category, generate a brief, engaging summary for this agent:
+    
+    Agent Name: {agent_name}
+    Personality Category: {category}
+    User Inputs: {inputs_text}
+    
+    Create a 2-3 sentence summary that captures their personality and interests in a spy/agent theme. Always start with "[Name], or [Agent Name] is..."
+    """
+    
+    try:
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.7,
+                max_output_tokens=150
+            )
+        )
+        return response.text.strip()
+    except Exception as e:
+        # Fallback summary if Gemini fails
+        return f"{agent_name} is a mysterious agent with category {category} who has shared {len(user_inputs)} insights."
 
 user_router = APIRouter(prefix="/users", tags=["User Management"])
 
@@ -30,13 +63,15 @@ async def add_user_inputs(request: Request):
     cursor["users"].update_one({"_id": uuid}, {"$set": {"inputs": user["inputs"]}})
 
 
-    cursor["users"].update_one({"_id": uuid}, {"$set": {"category": classify(" ".join(user["inputs"]))}})
+    # Update category based on user inputs
+    category = classify(" ".join(user["inputs"]))
+    cursor["users"].update_one({"_id": uuid}, {"$set": {"category": category}})
 
-    # summary = "......"
-    summary = ""
+    # Generate summary using Gemini
+    agent_name = user.get("agent", "Unknown Agent")
+    summary = generate_summary(agent_name, category, user["inputs"])
 
-
-
+    # Update user with generated summary
     cursor["users"].update_one({"_id": uuid}, {"$set": {"summary": summary}})
 
 
