@@ -41,6 +41,7 @@ async def create_all_challenges():
 
     for category, users in clusters.items():
         challenge_id = str(uuid4())
+        if len(users) < 2: continue
 
         c_index = random.randint(0, len(LOCATIONS.items()) - 1)
         print(LOCATIONS, c_index)
@@ -59,13 +60,16 @@ async def create_all_challenges():
         numbers = set()
         while len(numbers) < len(users):
             numbers.add(random.randint(100, 999))
+            print(numbers, flush=True)
         numbers = list(numbers)
 
 
+        
+
         for i, user_id in enumerate(users):
-
+            print(users, (i + 1) % len(users))
             target_user = cursor["users"].find_one({"_id": list(users)[(i + 1) % len(users)]})
-
+            print(target_user, flush=True)
             cursor["users"].update_one(
                 {"_id": user_id},
                 {"$set": {
@@ -77,7 +81,7 @@ async def create_all_challenges():
                         "code_offered": numbers[i],
                         "code_needed": numbers[(i + 1) % len(users)],
                         "agent_needed": target_user["agent"],
-                        "assigned_at": time()
+                        "assigned_at": time.time()
                     }
                 }}
             )
