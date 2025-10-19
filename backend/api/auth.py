@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request
 import os
 
 from api.mongo import cursor
+import random
 
 
 client_kwargs={
@@ -13,6 +14,11 @@ import fastapi
 from authlib.integrations.starlette_client import OAuth
 
 oauth = OAuth()
+
+base = os.path.dirname(os.path.abspath(__file__))
+
+with open(os.path.join(base, "names.txt"), "r") as f:
+    NAMES = [line.strip() for line in f.readlines() if line.strip()]
 
 
 oauth.register(
@@ -46,7 +52,7 @@ async def auth(request: Request):
         if k in {"sub", "name", "email"}
     }
 
-    user["current_mission"] = ""
+    user["current_mission"] = {}
     user["previous_missions"] = []
 
     user["uuid"] = user["sub"]
@@ -54,6 +60,9 @@ async def auth(request: Request):
 
     if not cursor["users"].find_one({"sub": user["sub"]}):
         cursor["users"].insert_one(user)
+
+    # generate name by picking two random words from names.txt
+    user["name"] = "Agent " + " ".join(random.sample(NAMES, 2))
 
     return user
 
