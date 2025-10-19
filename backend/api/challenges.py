@@ -29,14 +29,29 @@ with open(os.path.join(base, "actions.txt"), "r") as f:
 with open(os.path.join(base, "locations.json"), "r") as f:
     LOCATIONS = json.load(f)
 
+with open(os.path.join(base, "words.txt"), "r") as f:
+    WORDS = [line.strip() for line in f.readlines() if line.strip()]
+
 @challenges_router.post("/create")
 async def create_all_challenges():
+    # First, set all currently active challenges to inactive
+    cursor["challenges"].update_many(
+        {"status": "active"},
+        {"$set": {"status": "inactive"}}
+    )
+    
+    # Clear current_mission for all users
+    cursor["users"].update_many(
+        {},
+        {"$set": {"current_mission": {}}}
+    )
+    
+    # Now build clusters
     clusters = {}
     
     for user in cursor["users"].find({}, {"_id": 1, "category": 1}):
         category = user.get("category", "Uncategorized")
         if category == "Uncategorized": continue
-        cursor["users"].update_one({"_id": user["_id"]}, {"$set": {"current_mission": {}}})
         if category not in clusters:
             clusters[category] = set()
         clusters[category].add(user["_id"])
@@ -62,19 +77,10 @@ async def create_all_challenges():
         }
         cursor["challenges"].insert_one(challenge)
 
-        numbers = set()
-        while len(numbers) < len(users):
-            numbers.add(random.randint(100, 999))
-            #print(numbers, flush=True)
-        numbers = list(numbers)
-
-
-        
+        # Assign each user a unique random word
+        assigned_words = random.sample(WORDS, len(users))
 
         for i, user_id in enumerate(users):
-            #print(users, (i + 1) % len(users))
-            target_user = cursor["users"].find_one({"_id": list(users)[(i + 1) % len(users)]})
-            #print(target_user, flush=True)
             cursor["users"].update_one(
                 {"_id": user_id},
                 {"$set": {
@@ -83,9 +89,7 @@ async def create_all_challenges():
                         "riddle": challenge["riddle"],
                         "action": challenge["action"],
                         "challenge_name": challenge["challenge_name"],
-                        "code_offered": numbers[i],
-                        "code_needed": numbers[(i + 1) % len(users)],
-                        "agent_needed": target_user["agent"],
+                        "secret_word": assigned_words[i],
                         "assigned_at": time.time()
                     }
                 }}
@@ -94,18 +98,27 @@ async def create_all_challenges():
 
 @challenges_router.post("/claim")
 async def claim_challenge(body: dict):
-    """Claim a challenge by providing your uuid and the code to claim.
+    """Claim a challenge by providing your uuid and secret words for ALL agents in the challenge.
 
-    Expected body: { "uuid": "user-id", "code": 123 }
+    Expected body: { 
+        "uuid": "user-id", 
+        "codes": {
+            "agent_name_1": "secret_word_1",
+            "agent_name_2": "secret_word_2",
+            ...
+        }
+    }
 
-    If the provided code matches the user's current_mission.code_needed,
-    remove the current_mission and append the challenge_id to previous_missions.
+    All users in the cluster must contribute their respective secret words to complete the challenge.
     """
     # basic validation
     uuid = body.get("uuid")
-    code = body.get("code")
-    if not uuid or code is None:
-        raise HTTPException(status_code=400, detail="uuid and code are required")
+    codes = body.get("codes")
+    if not uuid or not codes:
+        raise HTTPException(status_code=400, detail="uuid and codes are required")
+    
+    if not isinstance(codes, dict):
+        raise HTTPException(status_code=400, detail="codes must be a dictionary")
 
     # fetch user
     user = cursor["users"].find_one({"_id": uuid})
@@ -116,7 +129,7 @@ async def claim_challenge(body: dict):
     if not current:
         raise HTTPException(status_code=400, detail="No active mission for user")
 
-    # prevent claiming if more than 2 minutes (120 seconds) have passed since assignment
+    # prevent claiming if more than 5 minutes (300 seconds) have passed since assignment
     assigned_at = current.get("assigned_at")
     if assigned_at is not None:
         try:
@@ -125,30 +138,78 @@ async def claim_challenge(body: dict):
             assigned_at_val = None
 
         if assigned_at_val is not None:
-            if time() - assigned_at_val > 120:
+            if time.time() - assigned_at_val > 300:
                 raise HTTPException(status_code=400, detail="Claim window expired")
 
-    # code_needed may be stored as int or string; compare loosely
-    code_needed = current.get("code_needed")
-    try:
-        if int(code_needed) != int(code):
-            raise HTTPException(status_code=400, detail="Incorrect code")
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid code format")
-
-    challenge_id = current.get("challenge_name")
+    # Validate all agent codes
+    challenge_id = current.get("challenge_id")
+    if not challenge_id:
+        raise HTTPException(status_code=400, detail="No challenge_id in current mission")
+    
+    # Get the challenge to find all participants
+    challenge = cursor["challenges"].find_one({"challenge_id": challenge_id})
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    
+    # Get all participants in the challenge
+    participants = challenge.get("participants", [])
+    
+    # Get all agents in the challenge with their secret words
+    all_agents = {}
+    for participant_id in participants:
+        participant = cursor["users"].find_one({"_id": participant_id})
+        if participant:
+            agent_name = participant.get("agent")
+            participant_mission = participant.get("current_mission", {})
+            secret_word = participant_mission.get("secret_word")
+            if agent_name and secret_word:
+                all_agents[agent_name] = secret_word
+    
+    # Check if all agents' words are provided (excluding the claiming user)
+    claiming_user_agent = user.get("agent")
+    required_agents = {agent: word for agent, word in all_agents.items() if agent != claiming_user_agent}
+    
+    if len(codes) != len(required_agents):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Must provide secret words for all {len(required_agents)} other agents in the challenge"
+        )
+    
+    # Verify each provided code against the corresponding agent's secret word
+    for agent_name, provided_word in codes.items():
+        if agent_name not in required_agents:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Agent '{agent_name}' is not part of this challenge or is the claiming user"
+            )
+        
+        expected_word = required_agents[agent_name]
+        
+        # Compare the words (case-insensitive)
+        if provided_word.lower() != expected_word.lower():
+            raise HTTPException(
+                status_code=400,
+                detail=f"Incorrect secret word for agent '{agent_name}'"
+            )
+    
+    challenge_name = current.get("challenge_name")
 
     # update user: unset current_mission and push to previous_missions
     update_result = cursor["users"].update_one(
         {"_id": uuid},
         {
             "$unset": {"current_mission": ""},
-            "$push": {"previous_missions": challenge_id}
+            "$push": {"previous_missions": challenge_name}
         }
     )
 
     if update_result.modified_count == 0:
         # fallback: still consider success but inform
-        return {"status": "ok", "message": "Code matched but user record not modified"}
+        return {"status": "ok", "message": "All secret words matched but user record not modified"}
 
-    return {"status": "ok", "message": "Challenge claimed", "challenge_id": challenge_id}
+    return {
+        "status": "ok", 
+        "message": "Challenge claimed", 
+        "challenge_id": challenge_name,
+        "agents_verified": list(codes.keys())
+    }
