@@ -8,6 +8,17 @@ import AudioBar from '../components/AudioBar';
 import TypingText from "@/components/text/typing-text";
 import Cookies from "js-cookie";
 
+// Audio file paths from public directory
+const sound1 = '/sounds/1.mp3';
+const sound2 = '/sounds/2.mp3';
+const sound3 = '/sounds/3.mp3';
+const sound4 = '/sounds/4.mp3';
+const sound5 = '/sounds/5.mp3';
+const sound6 = '/sounds/6.mp3';
+const sound7 = '/sounds/7.mp3';
+const sound8 = '/sounds/8.mp3';
+const sound9 = '/sounds/9.mp3';
+
 interface OnboardingProps {
   onComplete: () => void;
 }
@@ -62,16 +73,17 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   const [showContactInput, setShowContactInput] = useState(false);
   const [showFinalMessage, setShowFinalMessage] = useState(false);
   const [showFinalSplash, setShowFinalSplash] = useState(false);
+  const [audioShouldPlay, setAudioShouldPlay] = useState(false);
   const [userData, setUserData] = useState<AgentProfile>({} as AgentProfile);
 
-  const targetText = 'U N F R E E Z E';
+  const targetText = 'S Y N D I C A T E';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
 
   // Scrambling effect for the initial UNFREEZE splash
   useEffect(() => {
     if (currentStep === 0) {
       const t0 = setTimeout(() => {
-        setScrambledText('#%8^@?3&!*$9!0&4@');
+        setScrambledText('#%8^@?3&!#*$9!$0&4@');
 
         let scrambleCount = 0;
         const maxScrambles = 30; // 3s at 100ms
@@ -153,12 +165,18 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   useEffect(() => {
     if (currentStep !== 2) return;
 
+    setAudioShouldPlay(false); // Reset first
     setShowSvg(true);
     setShowAudioBar(true);
     setShowTypingText(true); // purely visual; no longer gates the name scramble
-
+    
     const timeouts: Array<ReturnType<typeof setTimeout>> = [];
     let interval: ReturnType<typeof setInterval> | null = null;
+
+    // Trigger audio after a brief delay to ensure component is mounted
+    timeouts.push(
+      setTimeout(() => setAudioShouldPlay(true), 100)
+    );
 
     // +1s: show original name
     timeouts.push(
@@ -211,69 +229,106 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   // Show typing text and poll for FIRST page
   useEffect(() => {
     if (currentStep === 3) {
+      setAudioShouldPlay(false); // Reset first
       setShowTypingText(true);
-      const t = setTimeout(() => setShowPoll(true), 7000); // time before showing poll
-      return () => clearTimeout(t);
+      const t1 = setTimeout(() => setAudioShouldPlay(true), 100); // Trigger audio playback
+      const t2 = setTimeout(() => setShowPoll(true), 7000); // time before showing poll
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     }
   }, [currentStep]);
 
   // Show typing text and poll for SECOND page
   useEffect(() => {
     if (currentStep === 4) {
+      setAudioShouldPlay(false); // Reset first
       setShowTypingText(true);
-      const t = setTimeout(() => setShowInterestsPoll(true), 7000);
-      return () => clearTimeout(t);
+      const t1 = setTimeout(() => setAudioShouldPlay(true), 100); // Trigger audio playback
+      const t2 = setTimeout(() => setShowInterestsPoll(true), 7000);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     }
   }, [currentStep]);
 
   // Show typing text and input for THIRD page
   useEffect(() => {
     if (currentStep === 5) {
+      setAudioShouldPlay(false); // Reset first
       setShowTypingText(true);
-      const t = setTimeout(() => setShowProjectInput(true), 7000);
-      return () => clearTimeout(t);
+      const t1 = setTimeout(() => setAudioShouldPlay(true), 100); // Trigger audio playback
+      const t2 = setTimeout(() => setShowProjectInput(true), 7000);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     }
   }, [currentStep]);
 
   // Show typing text and input for FOURTH page
   useEffect(() => {
     if (currentStep === 6) {
+      setAudioShouldPlay(false); // Reset first
       setShowTypingText(true);
-      const t = setTimeout(() => setShowHobbiesInput(true), 7000);
-      return () => clearTimeout(t);
+      const t1 = setTimeout(() => setAudioShouldPlay(true), 100); // Trigger audio playback
+      const t2 = setTimeout(() => setShowHobbiesInput(true), 7000);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     }
   }, [currentStep]);
 
   // Show typing text and poll for FIFTH page
   useEffect(() => {
     if (currentStep === 7) {
+      setAudioShouldPlay(false); // Reset first
       setShowTypingText(true);
-      const t = setTimeout(() => setShowPersonalityPoll(true), 6500);
-      return () => clearTimeout(t);
+      const t1 = setTimeout(() => setAudioShouldPlay(true), 100); // Trigger audio playback
+      const t2 = setTimeout(() => setShowPersonalityPoll(true), 6500);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     }
   }, [currentStep]);
 
   // Show typing text and poll for SIXTH page
   useEffect(() => {
     if (currentStep === 8) {
+      setAudioShouldPlay(false); // Reset first
       setShowTypingText(true);
-      const t = setTimeout(() => setShowRiskPoll(true), 5000);
-      return () => clearTimeout(t);
+      const t1 = setTimeout(() => setAudioShouldPlay(true), 100); // Trigger audio playback
+      const t2 = setTimeout(() => setShowRiskPoll(true), 5000);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     }
   }, [currentStep]);
 
   // Show typing text and input for SEVENTH page
   useEffect(() => {
     if (currentStep === 9) {
+      setAudioShouldPlay(false); // Reset first
       setShowTypingText(true);
-      const t = setTimeout(() => setShowContactInput(true), 8000);
-      return () => clearTimeout(t);
+      const t1 = setTimeout(() => setAudioShouldPlay(true), 100); // Trigger audio playback
+      const t2 = setTimeout(() => setShowContactInput(true), 8000);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     }
   }, [currentStep]);
 
   // Show final message and splash for EIGHTH page
   useEffect(() => {
     if (currentStep === 10) {
+      setAudioShouldPlay(false); // Reset first
+      const t0 = setTimeout(() => setAudioShouldPlay(true), 100); // Trigger audio playback
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/inputs`, {
         method: "POST",
         body: JSON.stringify({inputs: [selectedSpecialty, ...selectedInterests, dubhacksProject, hobbies, selectedPersonality, selectedRiskLevel]})
@@ -295,13 +350,16 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
         }, 1000);
         return () => clearTimeout(t2);
       }, 1000);
-      return () => clearTimeout(t1);
+      return () => {
+        clearTimeout(t0);
+        clearTimeout(t1);
+      };
     }
   }, [currentStep]);
 
   // Reset typing text when changing pages
   useEffect(() => {
-    if (currentStep !== 2 && currentStep !== 3 && currentStep !== 4 && currentStep !== 5 && currentStep !== 6 && currentStep !== 7 && currentStep !== 8 && currentStep !== 9) {
+    if (currentStep !== 2 && currentStep !== 3 && currentStep !== 4 && currentStep !== 5 && currentStep !== 6 && currentStep !== 7 && currentStep !== 8 && currentStep !== 9 && currentStep !== 10) {
       setShowTypingText(false);
     }
   }, [currentStep]);
@@ -424,7 +482,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
         {showAudioBar && (
           <div className="absolute top-[40%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 fade-in transition-all duration-1000 ease-in-out">
-            <AudioBar />
+            <AudioBar audioFile={sound1} shouldPlay={audioShouldPlay} />
           </div>
         )}
 
@@ -483,7 +541,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
         {/* Audio bar on top of spy symbol */}
         <div className="absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 fade-in transition-all duration-1000 ease-in-out">
-          <AudioBar />
+          <AudioBar audioFile={sound2} shouldPlay={audioShouldPlay} />
         </div>
 
         {/* Subtitle with typing effect */}
@@ -558,7 +616,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
         {/* Audio bar on top of spy symbol */}
         <div className="absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 fade-in">
-          <AudioBar />
+          <AudioBar audioFile={sound3} shouldPlay={audioShouldPlay} />
         </div>
 
         {/* Subtitle with typing effect */}
@@ -632,7 +690,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
         {/* Audio bar on top of spy symbol */}
         <div className="absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 fade-in">
-          <AudioBar />
+          <AudioBar audioFile={sound4} shouldPlay={audioShouldPlay} />
         </div>
 
         {/* Subtitle with typing effect */}
@@ -699,7 +757,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
         {/* Audio bar on top of spy symbol */}
         <div className="absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 fade-in transition-all duration-1000 ease-in-out">
-          <AudioBar />
+          <AudioBar audioFile={sound5} shouldPlay={audioShouldPlay} />
         </div>
 
         {/* Subtitle with typing effect */}
@@ -766,7 +824,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
         {/* Audio bar on top of spy symbol */}
         <div className="absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 fade-in transition-all duration-1000 ease-in-out">
-          <AudioBar />
+          <AudioBar audioFile={sound6} shouldPlay={audioShouldPlay} />
         </div>
 
         {/* Subtitle with typing effect */}
@@ -841,7 +899,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
         {/* Audio bar on top of spy symbol */}
         <div className="absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 fade-in transition-all duration-1000 ease-in-out">
-          <AudioBar />
+          <AudioBar audioFile={sound7} shouldPlay={audioShouldPlay} />
         </div>
 
         {/* Subtitle with typing effect */}
@@ -916,7 +974,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
         {/* Audio bar on top of spy symbol */}
         <div className="absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 fade-in transition-all duration-1000 ease-in-out">
-          <AudioBar />
+          <AudioBar audioFile={sound8} shouldPlay={audioShouldPlay} />
         </div>
 
         {/* Subtitle with typing effect */}
@@ -979,7 +1037,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
         {/* Audio bar on top of spy symbol */}
         {showAudioBar && (
           <div className="absolute top-[20%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 fade-in transition-all duration-1000 ease-in-out">
-            <AudioBar />
+            <AudioBar audioFile={sound9} shouldPlay={audioShouldPlay} />
           </div>
         )}
 
@@ -1008,7 +1066,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
         {showFinalSplash && (
           <div className="absolute inset-0 flex items-center justify-center px-4" style={{ backgroundColor: '#0d0d0d' }}>
             <h1 className="text-4xl font-bold font-mono whitespace-nowrap neon-glow fade-in" style={{ color: '#33ff66', letterSpacing: '0.1em' }}>
-              U N F R E E Z E
+              S Y N D I C A T E
             </h1>
           </div>
         )}

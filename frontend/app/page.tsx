@@ -414,7 +414,7 @@ export default function Home() {
       {/* Fixed Header Bar */}
       <div className="fixed top-0 left-0 right-0 py-4 border-b z-50 neon-border" style={{backgroundColor: 'rgba(13, 13, 13, 0.95)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(10px)'}}>
         <h1 className="text-2xl font-bold font-mono text-center neon-glow" style={{color: '#33ff66', letterSpacing: '0.4em'}}>
-          U N F R E E Z E
+          S Y N D I C A T E
         </h1>
       </div>
       
