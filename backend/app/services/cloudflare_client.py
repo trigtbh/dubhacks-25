@@ -22,7 +22,7 @@ class CloudflareD1Client:
         client = get_d1_client()
         if client:
             # Execute query
-            result = await client.query("SELECT * FROM users WHERE id = ?", [user_id])
+            result = await client.query("SELECT * FROM users WHERE id = ?", [uuid])
             
             # Execute multiple queries
             results = await client.batch([

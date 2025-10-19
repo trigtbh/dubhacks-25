@@ -93,7 +93,7 @@ d1 = get_d1_client()
 # Query with parameters
 result = await d1.query(
     "SELECT * FROM users WHERE id = ?",
-    [user_id]
+    [uuid]
 )
 
 # Batch queries

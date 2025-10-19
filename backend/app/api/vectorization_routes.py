@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any
 import numpy as np
@@ -8,7 +8,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import cosine_similarity
 
-router = APIRouter(prefix="/api/v1/users", tags=["User Vectorization & Clustering"])
+from app.services.vectorization_service import UserVectorizationService
+from app.dependencies import get_current_user
+
+router = APIRouter(prefix="/api/v1/users", tags=["User Vectorization & Clustering"], dependencies=[Depends(get_current_user)])
 
 # ============================================================================
 # Pydantic Models
@@ -16,7 +19,7 @@ router = APIRouter(prefix="/api/v1/users", tags=["User Vectorization & Clusterin
 
 class UserAttributes(BaseModel):
     """User attributes that will be converted to vectors"""
-    user_id: str
+    uuid: str
     skills: List[str] = Field(..., description="List of user skills")
     interests: List[str] = Field(..., description="List of user interests")
     hobbies: List[str] = Field(default_factory=list, description="List of user hobbies")
@@ -30,7 +33,7 @@ class UserAttributesRequest(BaseModel):
 
 class VectorizedUser(BaseModel):
     """Response containing vectorized user data"""
-    user_id: str
+    uuid: str
     vector: List[float]
     attributes: UserAttributes
     vector_dimension: int
@@ -50,7 +53,7 @@ class ClusterRequest(BaseModel):
 class UserCluster(BaseModel):
     """A cluster containing users"""
     cluster_id: int
-    user_ids: List[str]
+    uuids: List[str]
     size: int
     common_interests: List[str] = Field(default_factory=list, description="Interests shared by users in this cluster")
     similarity_score: float = Field(default=0.0, description="Average similarity within cluster")
@@ -71,13 +74,13 @@ class SimilarUsersRequest(BaseModel):
 
 class SimilarUser(BaseModel):
     """Similar user with similarity score"""
-    user_id: str
+    uuid: str
     similarity_score: float
     shared_interests: List[str]
 
 class SimilarUsersResponse(BaseModel):
     """Response for finding similar users"""
-    reference_user_id: str
+    reference_uuid: str
     similar_users: List[SimilarUser]
     timestamp: str
 
@@ -126,7 +129,7 @@ def _extract_common_interests(user1: UserAttributes, user2: UserAttributes) -> L
 
 def _calculate_user_similarity(user1: UserAttributes, user2: UserAttributes) -> float:
     """Calculate similarity between two users based on their attributes"""
-    if user1.user_id == user2.user_id:
+    if user1.uuid == user2.uuid:
         return 1.0
     
     similarity_scores = []
@@ -187,7 +190,7 @@ async def vectorize_users(request: UserAttributesRequest):
         for i, user in enumerate(request.users):
             vector_list = vectors[i].tolist()
             vectorized_users.append(VectorizedUser(
-                user_id=user.user_id,
+                uuid=user.uuid,
                 vector=vector_list,
                 attributes=user,
                 vector_dimension=len(vector_list)
@@ -249,7 +252,7 @@ async def cluster_users(request: ClusterRequest):
         # Calculate cluster statistics and create response
         user_clusters = []
         for cluster_id, user_indices in clusters_dict.items():
-            cluster_user_ids = [request.users[i].user_id for i in user_indices]
+            cluster_uuids = [request.users[i].uuid for i in user_indices]
             
             # Get cluster vectors
             cluster_vectors = vectors[user_indices]
@@ -276,8 +279,8 @@ async def cluster_users(request: ClusterRequest):
             
             user_clusters.append(UserCluster(
                 cluster_id=int(cluster_id),
-                user_ids=cluster_user_ids,
-                size=len(cluster_user_ids),
+                uuids=cluster_uuids,
+                size=len(cluster_uuids),
                 common_interests=common_interests,
                 similarity_score=avg_similarity
             ))
@@ -318,14 +321,14 @@ async def find_similar_users(request: SimilarUsersRequest):
         # Calculate similarity with all users
         similarities = []
         for other_user in request.all_users:
-            if other_user.user_id == request.user.user_id:
+            if other_user.uuid == request.user.uuid:
                 continue  # Skip the reference user itself
             
             similarity_score = _calculate_user_similarity(request.user, other_user)
             shared_interests = _extract_common_interests(request.user, other_user)
             
             similarities.append(SimilarUser(
-                user_id=other_user.user_id,
+                uuid=other_user.uuid,
                 similarity_score=similarity_score,
                 shared_interests=shared_interests
             ))
@@ -335,7 +338,7 @@ async def find_similar_users(request: SimilarUsersRequest):
         top_similar = similarities[:request.top_k]
         
         return SimilarUsersResponse(
-            reference_user_id=request.user.user_id,
+            reference_uuid=request.user.uuid,
             similar_users=top_similar,
             timestamp=datetime.now().isoformat()
         )

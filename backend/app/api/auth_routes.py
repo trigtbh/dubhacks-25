@@ -7,7 +7,7 @@ import json
 # --- Session Management for Authlib ---
 def parse_user(token):
     return {
-        "user_id": token["userinfo"]["sub"],
+        "uuid": token["userinfo"]["sub"],
         "first_name": token["userinfo"]["given_name"],
         "family_name": token["userinfo"]["family_name"],
         "email": token["userinfo"]["email"],

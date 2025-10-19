@@ -2,8 +2,9 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 from app.services.cloudflare_client import get_d1_client, get_kv_client, get_r2_client, CloudflareD1Client, CloudflareKVClient, CloudflareR2Client
+from app.dependencies import get_current_user
 
-router = APIRouter(prefix="/cloudflare", tags=["cloudflare"])
+router = APIRouter(prefix="/cloudflare", tags=["cloudflare"], dependencies=[Depends(get_current_user)])
 
 # ===== D1 Database Endpoints =====
 

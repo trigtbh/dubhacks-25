@@ -15,7 +15,7 @@ app = FastAPI(title="Mission Control Onboarding API")
 
 # ---------- MODELS ----------
 class ChatRequest(BaseModel):
-    user_id: str
+    uuid: str
     message: str
 
 class ChatResponse(BaseModel):
@@ -55,18 +55,18 @@ chat = client.chats.create(
 # ---------- MAIN ENDPOINT ----------
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
-    user_id = req.user_id
+    uuid = req.uuid
     message = req.message
 
     # Initialize conversation if new
-    if user_id not in user_sessions:
-        user_sessions[user_id] = []
+    if uuid not in user_sessions:
+        user_sessions[uuid] = []
 
     # Add user message
-    user_sessions[user_id].append({"role": "user", "content": message})
+    user_sessions[uuid].append({"role": "user", "content": message})
 
     # Generate response from Gemini
-    chat = model.start_chat(history=user_sessions[user_id])
+    chat = model.start_chat(history=user_sessions[uuid])
     response = chat.send_message(message)
 
     # Handle possible function calls
@@ -86,6 +86,6 @@ async def chat(req: ChatRequest):
             text += part.text + "\n"
 
     # Append assistant reply to history
-    user_sessions[user_id].append({"role": "assistant", "content": text.strip()})
+    user_sessions[uuid].append({"role": "assistant", "content": text.strip()})
 
     return ChatResponse(response=text.strip(), interests_logged=interests_logged)

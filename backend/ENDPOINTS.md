@@ -107,7 +107,7 @@ Cloudflare integration requires the following environment variables in `backend/
 
 ```json
 {
-  "user_id": "string",
+  "uuid": "string",
   "skills": ["skill1", "skill2"],
   "interests": ["interest1", "interest2"],
   "hobbies": ["hobby1", "hobby2"],
@@ -126,7 +126,7 @@ Cloudflare integration requires the following environment variables in `backend/
   {
     "users": [
       {
-        "user_id": "user123",
+        "uuid": "user123",
         "skills": ["Python", "JavaScript"],
         "interests": ["AI", "Web Development"],
         "hobbies": ["Reading", "Gaming"],
@@ -142,7 +142,7 @@ Cloudflare integration requires the following environment variables in `backend/
   {
     "vectorized_users": [
       {
-        "user_id": "user123",
+        "uuid": "user123",
         "vector": [0.1, 0.2, 0.0, ...],
         "attributes": { /* UserAttributes */ },
         "vector_dimension": 100
@@ -171,7 +171,7 @@ Cloudflare integration requires the following environment variables in `backend/
     "clusters": [
       {
         "cluster_id": 0,
-        "user_ids": ["user1", "user2"],
+        "uuids": ["user1", "user2"],
         "size": 2,
         "common_interests": ["AI", "Python"],
         "similarity_score": 0.75
@@ -199,10 +199,10 @@ Cloudflare integration requires the following environment variables in `backend/
 - **Response:**
   ```json
   {
-    "reference_user_id": "user123",
+    "reference_uuid": "user123",
     "similar_users": [
       {
-        "user_id": "user456",
+        "uuid": "user456",
         "similarity_score": 0.85,
         "shared_interests": ["AI", "Python"]
       }

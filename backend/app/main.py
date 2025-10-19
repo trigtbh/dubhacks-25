@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request # New import for session helpers
@@ -9,7 +9,10 @@ from app.config import settings
 from app.api import routes
 from app.api import cloudflare_routes
 from app.api import vectorization_routes
+from app.api import user_routes
 from app.api import auth_routes
+from app.api import challenge_routes
+from app.dependencies import get_current_user
 
 app = FastAPI(
     title="Unfreeze API",
@@ -33,20 +36,23 @@ app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
 app.include_router(routes.router)
 app.include_router(cloudflare_routes.router)
 app.include_router(vectorization_routes.router)
+app.include_router(user_routes.router)
 app.include_router(auth_routes.router)
+app.include_router(challenge_routes.router)
 
 @app.get("/")
-async def root():
+async def root(current_user: dict = Depends(get_current_user)):
     """Health check endpoint"""
     return {
         "message": "Unfreeze API is running",
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "environment": settings.environment
+        "environment": settings.environment,
+        "user": current_user
     }
 
 @app.get("/health")
-async def health_check():
+async def health_check(current_user: dict = Depends(get_current_user)):
     """Detailed health check"""
     return {
         "status": "healthy",
@@ -59,7 +65,8 @@ async def health_check():
             "api": "operational",
             "cloudflare_d1": "configured" if settings.cloudflare_d1_configured else "not_configured",
             "cloudflare_kv": "configured" if settings.cloudflare_kv_namespace_id else "not_configured"
-        }
+        },
+        "user": current_user
     }
 
 if __name__ == "__main__":
