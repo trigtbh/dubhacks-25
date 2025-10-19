@@ -4,10 +4,8 @@ from api.vectorization_service import classify
 
 user_router = APIRouter(prefix="/users", tags=["User Management"])
 
-@user_router.get("/@me")
-async def get_your_user(request: Request):
-    data = await request.json()
-    uuid = data.get("uuid")
+@user_router.get("/{uuid}")
+async def get_your_user(uuid: str, request: Request):
     return cursor["users"].find_one({"_id": uuid})
 
 @user_router.post("/inputs")
