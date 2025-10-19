@@ -58,11 +58,13 @@ async def auth(request: Request):
     user["uuid"] = user["sub"]
     user["_id"] = user["sub"]
 
+    user["agent"] = "Agent " + " ".join(random.sample(NAMES, 2))
+
     if not cursor["users"].find_one({"sub": user["sub"]}):
         cursor["users"].insert_one(user)
 
     # generate name by picking two random words from names.txt
-    user["name"] = "Agent " + " ".join(random.sample(NAMES, 2))
+#    user["name"] = "Agent " + " ".join(random.sample(NAMES, 2))
 
     return user
 

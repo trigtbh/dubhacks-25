@@ -1,7 +1,7 @@
 import json
 import os
-from random import random
-from time import time
+import random
+import time
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from api.mongo import cursor
 from uuid import uuid4
@@ -42,27 +42,30 @@ async def create_all_challenges():
     for category, users in clusters.items():
         challenge_id = str(uuid4())
 
-        c_index = random.randint(0, 10)
-
+        c_index = random.randint(0, len(LOCATIONS.items()) - 1)
+        print(LOCATIONS, c_index)
         challenge = {
             "challenge_id": challenge_id,
             "category": category,
             "participants": list(users),
             "status": "active",
-            "riddle": LOCATIONS.items()[c_index][1],
+            "riddle": list(LOCATIONS.items())[c_index][1],
             "action": random.choice(ACTIONS),
             "challenge_name": OPERATIONS[c_index],
             "expiration": time.time() + 600
         }
         cursor["challenges"].insert_one(challenge)
 
-        numbers = {}
+        numbers = set()
         while len(numbers) < len(users):
             numbers.add(random.randint(100, 999))
         numbers = list(numbers)
 
 
         for i, user_id in enumerate(users):
+
+            target_user = cursor["users"].find_one({"_id": list(users)[(i + 1) % len(users)]})
+
             cursor["users"].update_one(
                 {"_id": user_id},
                 {"$set": {
@@ -73,7 +76,7 @@ async def create_all_challenges():
                         "challenge_name": challenge["challenge_name"],
                         "code_offered": numbers[i],
                         "code_needed": numbers[(i + 1) % len(users)],
-                        "agent_needed": cursor["users"].find_one({"_id": users[(i + 1) % len(users)]})["agent"],
+                        "agent_needed": target_user["agent"],
                         "assigned_at": time()
                     }
                 }}
