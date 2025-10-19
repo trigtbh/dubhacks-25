@@ -18,7 +18,7 @@ def generate_summary(agent_name: str, category: int, user_inputs: list) -> str:
     Personality Category: {category}
     User Inputs: {inputs_text}
     
-    Create a 2-3 sentence summary that captures their personality and interests in a spy/agent theme. Always start with "[Name], or [Agent Name] is..."
+    Create a 2-3 sentence summary that captures their personality and interests in a spy/agent theme. Always start with "[Name], or [Agent Name] is...". Do not include any additional information or text
     """
     
     try:
