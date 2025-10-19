@@ -7,3 +7,4 @@ starlette
 itsdangerous
 uvicorn
 httpx
+google-genai
