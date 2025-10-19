@@ -14,8 +14,18 @@ def parse_user(token):
         "pfp": token["userinfo"]["picture"]
         }
 
+router = APIRouter(prefix="/auth")
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+oauth = OAuth()
+if settings.google_sso_configured:
+    oauth.register(
+        name="google",
+        client_id=settings.google_client_id,
+        client_secret=settings.google_client_secret,
+        redirect_uri=settings.google_redirect_uri,
+        server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+        client_kwargs={"scope": "openid email profile"},
+    )
 
 @router.get("/google/login")
 async def google_login(request: Request):

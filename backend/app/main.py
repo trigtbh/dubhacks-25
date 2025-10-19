@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from authlib.integrations.starlette_client import OAuth # New import
 from datetime import datetime
 from app.config import settings
 from app.api import routes
