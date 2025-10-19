@@ -32,7 +32,6 @@ with open(os.path.join(base, "locations.json"), "r") as f:
 with open(os.path.join(base, "words.txt"), "r") as f:
     WORDS = [line.strip() for line in f.readlines() if line.strip()]
 
-@challenges_router.post("/create")
 async def create_all_challenges():
     # First, set all currently active challenges to inactive
     cursor["challenges"].update_many(
@@ -64,7 +63,6 @@ async def create_all_challenges():
         if len(users) < 2: continue
 
         c_index = random.randint(0, len(LOCATIONS.items()) - 1)
-        #print(LOCATIONS, c_index)
         challenge = {
             "_id": challenge_id,
             "challenge_id": challenge_id,
@@ -95,7 +93,6 @@ async def create_all_challenges():
                     }
                 }}
             )
-
 
 @challenges_router.post("/claim")
 async def claim_challenge(body: dict):
