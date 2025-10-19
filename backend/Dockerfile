@@ -17,7 +17,6 @@ COPY requirements.txt .
 
 # Install Python dependencies using uv.
 RUN uv venv --system
-ENV PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
 RUN uv pip install -r requirements.txt
 
 # Copy the rest of your application code (including run.py)
