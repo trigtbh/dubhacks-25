@@ -13,27 +13,27 @@ CREATE TABLE IF NOT EXISTS users (
 -- Example sessions table
 CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    uuid INTEGER NOT NULL,
     expires_at DATETIME NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (uuid) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Example data table (customize for your app)
 CREATE TABLE IF NOT EXISTS app_data (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
+    uuid INTEGER NOT NULL,
     data TEXT NOT NULL,
     metadata TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (uuid) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_uuid ON sessions(uuid);
 CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
-CREATE INDEX IF NOT EXISTS idx_app_data_user_id ON app_data(user_id);
+CREATE INDEX IF NOT EXISTS idx_app_data_uuid ON app_data(uuid);
 CREATE INDEX IF NOT EXISTS idx_app_data_created_at ON app_data(created_at);
 
 -- Insert sample data (optional - remove in production)
