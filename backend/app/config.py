@@ -61,7 +61,7 @@ class Settings(BaseSettings):
 try:
     with open("secrets/googlesso.json", "r") as gsso:
         gsettings = json.load(gsso)
-        settings = Settings(google_login="/auth/google/callback", google_client_id=gsettings["web"]["client_id"], google_client_secret=gsettings["web"]["client_secret"])
+        settings = Settings(google_redirect_uri="/auth/google/callback", google_client_id=gsettings["web"]["client_id"], google_client_secret=gsettings["web"]["client_secret"])
 except FileNotFoundError:
     import sys
     print("Error! Could not import `secrets/googlesso.json`!")
