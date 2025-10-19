@@ -58,7 +58,7 @@ async def auth(request: Request):
     user["uuid"] = user["sub"]
     user["_id"] = user["sub"]
 
-    user["agent"] = "Agent " + " ".join(random.sample(NAMES, 2))
+    user["agent"] = "Agent " + " ".join(random.sample(NAMES, 1))
 
     if not cursor["users"].find_one({"sub": user["sub"]}):
         cursor["users"].insert_one(user)
