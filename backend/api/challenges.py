@@ -29,7 +29,6 @@ with open(os.path.join(base, "actions.txt"), "r") as f:
 with open(os.path.join(base, "locations.json"), "r") as f:
     LOCATIONS = json.load(f)
 
-@challenges_router.post("/create")
 async def create_all_challenges():
     clusters = {}
     
@@ -43,7 +42,6 @@ async def create_all_challenges():
         challenge_id = str(uuid4())
 
         c_index = random.randint(0, len(LOCATIONS.items()) - 1)
-        print(LOCATIONS, c_index)
         challenge = {
             "challenge_id": challenge_id,
             "category": category,
@@ -77,11 +75,10 @@ async def create_all_challenges():
                         "code_offered": numbers[i],
                         "code_needed": numbers[(i + 1) % len(users)],
                         "agent_needed": target_user["agent"],
-                        "assigned_at": time()
+                        "assigned_at": time.time()
                     }
                 }}
             )
-
 
 @challenges_router.post("/claim")
 async def claim_challenge(body: dict):
