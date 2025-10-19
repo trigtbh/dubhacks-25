@@ -46,5 +46,5 @@ htmlcov/
 # Logs
 *.log
 
+secrets/
 
-secrets/*
