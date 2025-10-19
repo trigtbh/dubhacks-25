@@ -66,6 +66,7 @@ async def create_all_challenges():
         c_index = random.randint(0, len(LOCATIONS.items()) - 1)
         #print(LOCATIONS, c_index)
         challenge = {
+            "_id": challenge_id,
             "challenge_id": challenge_id,
             "category": category,
             "participants": list(users),
