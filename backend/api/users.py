@@ -32,4 +32,14 @@ async def add_user_inputs(request: Request):
 
     cursor["users"].update_one({"_id": uuid}, {"$set": {"category": classify(" ".join(user["inputs"]))}})
 
+    # summary = "......"
+    summary = ""
+
+
+
+    cursor["users"].update_one({"_id": uuid}, {"$set": {"summary": summary}})
+
+
+    
+
     return {"message": "Inputs added successfully.", "total_inputs": len(user["inputs"])}

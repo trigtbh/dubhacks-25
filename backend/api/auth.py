@@ -60,6 +60,8 @@ async def auth(request: Request):
 
     user["agent"] = "Agent " + " ".join(random.sample(NAMES, 1))
 
+    user["summary"] = ""
+
     if not cursor["users"].find_one({"sub": user["sub"]}):
         cursor["users"].insert_one(user)
 
