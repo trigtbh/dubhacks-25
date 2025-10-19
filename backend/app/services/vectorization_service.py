@@ -6,7 +6,7 @@ import json
 
 client = genai.Client(api_key=settings.gemini_api_key)
 
-def embed_content(content: str):
+def embed_content(content: str) -> List[float]:
     return client.models.embed_content(
         model="gemini-embedding-001",
         contents=content,
@@ -22,4 +22,3 @@ with open("personas.json", "r") as f:
 def classify(content: str, visited: Set[int]) -> int:
     user = embed_content(content)
     return min(((i, dist(user, e)) for i, e in enumerate(embeddings) if not i in visited), key=lambda x: x[1])[0]
-
