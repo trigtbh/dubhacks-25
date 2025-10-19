@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { AgentProfile } from "../shared";
 import Logo from '../components/Logo';
 import AudioBar from '../components/AudioBar';
 import TypingText from "@/components/text/typing-text";
+import Cookies from "js-cookie";
 
 // Audio file paths from public directory
 const sound1 = '/sounds/1.mp3';
@@ -19,6 +21,29 @@ const sound9 = '/sounds/9.mp3';
 
 interface OnboardingProps {
   onComplete: () => void;
+}
+
+interface Mission {
+  challenge_id: string;
+  riddle: string;
+  action: string;
+  challenge_name: string;
+  code_offered: number;
+  code_needed: number;
+  agent_needed: string;
+  assigned_at: number;
+}
+
+interface AgentProfile {
+  _id: string;
+  sub: string;
+  email: string;
+  name: string;
+  current_mission: Mission;
+  previous_missions: Mission[];
+  uuid: string;
+  agent: string;
+  summary: string;
 }
 
 const Onboarding = ({ onComplete }: OnboardingProps) => {
@@ -49,6 +74,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   const [showFinalMessage, setShowFinalMessage] = useState(false);
   const [showFinalSplash, setShowFinalSplash] = useState(false);
   const [audioShouldPlay, setAudioShouldPlay] = useState(false);
+  const [userData, setUserData] = useState<AgentProfile>({} as AgentProfile);
 
   const targetText = 'S Y N D I C A T E';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()';
@@ -69,10 +95,19 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
             setScrambledText(targetText);
             const t1 = setTimeout(() => {
               setShowUnfreeze(true);
-              const t2 = setTimeout(() => {
-                setShowUnfreeze(false);
-                setCurrentStep(1);
-              }, 1000);
+              if (Cookies.get("userid")) {
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${Cookies.get("userid")}`).then(async (val) => {
+                  const json = await val.json();
+                  setUserData(json);
+                  setShowUnfreeze(false);
+                  setCurrentStep(1.6);
+                });
+              } else {
+                setTimeout(() => {
+                  setShowUnfreeze(false);
+                  setCurrentStep(1);'Ishaan Awasthi'
+                }, 1000);
+              }
             }, 500);
             return;
           }
@@ -117,6 +152,10 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   // After Google SSO click, proceed
   useEffect(() => {
     if (currentStep === 1.6) {
+      if (!Cookies.get("userid")) {
+        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/login`;
+      }
+      
       const t = setTimeout(() => setCurrentStep(2), 2000);
       return () => clearTimeout(t);
     }
@@ -143,14 +182,14 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
     timeouts.push(
       setTimeout(() => {
         setShowName(true);
-        setScrambledName('Ishaan Awasthi');
+        setScrambledName(userData.name);
 
         // +1s after name shows: start scramble to Agent Phoenix (100ms × 20)
         timeouts.push(
           setTimeout(() => {
             let scrambleCount = 0;
             const maxScrambles = 20;
-            const targetName = 'Agent Phoenix';
+            const targetName = userData.agent;
 
             interval = setInterval(() => {
               scrambleCount++;
@@ -290,6 +329,11 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
     if (currentStep === 10) {
       setAudioShouldPlay(false); // Reset first
       const t0 = setTimeout(() => setAudioShouldPlay(true), 100); // Trigger audio playback
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/inputs`, {
+        method: "POST",
+        body: JSON.stringify({inputs: [selectedSpecialty, ...selectedInterests, dubhacksProject, hobbies, selectedPersonality, selectedRiskLevel]})
+      }).catch(err => console.error(err));
+
       const t1 = setTimeout(() => {
         setShowFinalMessage(true);
         const t2 = setTimeout(() => {
@@ -446,7 +490,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
         {showTypingText && (
           <div className="absolute bottom-24 left-4 right-4">
             <TypingText
-              text={["> Welcome to the Syndicate, Ishaan. Let's encrypt that identity, shall we?"]}
+      text={[`> Welcome to the Syndicate, ${userData.name}. Let's encrypt that identity, shall we?`]}
               typingSpeed={30}
               pauseDuration={0}
               showCursor={true}
@@ -504,7 +548,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
         {showTypingText && (
           <div className="absolute bottom-24 left-4 right-4">
             <TypingText
-              text={["> Alright, Agent Phoenix. Let's classify your specialty for Mission Control."]}
+              text={[`> Alright, ${userData.agent}. Let's classify your specialty for Mission Control.`]}
               typingSpeed={30}
               pauseDuration={0}
               showCursor={true}
@@ -787,7 +831,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
         {showTypingText && (
           <div className="absolute bottom-24 left-4 right-4">
             <TypingText
-              text={["> Thanks, Agent Phoenix. How do you prefer to operate in the field?"]}
+              text={[`> Thanks, ${userData.agent}. How do you prefer to operate in the field?`]}
               typingSpeed={30}
               pauseDuration={0}
               showCursor={true}
@@ -1003,7 +1047,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
             <div className="w-80 p-4 rounded-lg border neon-border" style={{ backgroundColor: 'rgba(26, 26, 26, 0.8)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(10px)' }}>
               {(
                 <TypingText
-                  text={["> The Syndicate thanks you, Agent Phoenix. Now check out the interface that Mission Control has designed for you, and get ready for your first mission. We'll be in touch."]}
+                  text={[`> The Syndicate thanks you, ${userData.agent}. Now check out the interface that Mission Control has designed for you, and get ready for your first mission. We'll be in touch.`]}
                   typingSpeed={30}
                   pauseDuration={0}
                   showCursor={true}
