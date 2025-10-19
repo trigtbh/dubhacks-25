@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { User, Crosshair, Crown, Edit, UserLock, MapPin, ShieldCheck, ChevronDown, ChevronUp, Waypoints, X } from 'lucide-react';
+import { AgentProfile } from './shared';
+import Cookies from "js-cookie";
+
 import Onboarding from './components/Onboarding';
 import img1 from './assets/stock/1.png';
 import img2 from './assets/stock/2.png';
@@ -19,11 +22,13 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState(3600); // 1 hour in seconds
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isAgentInfoCollapsed, setIsAgentInfoCollapsed] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  const [userData, setUserData] = useState<AgentProfile | null>(null);
+  
   // Images array
   const images = [
     { id: 1, src: img1 },
@@ -37,6 +42,14 @@ export default function Home() {
     { id: 9, src: img9 },
     { id: 10, src: img10 },
   ];
+
+  useEffect(() => {
+    (async () => {
+      const req = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${Cookies.get("userid")}`);
+      const json = await req.json();
+      setUserData(json);
+    })().catch(e => console.error(e));
+  }, []);
 
   // Countdown timer effect
   useEffect(() => {
@@ -100,8 +113,8 @@ export default function Home() {
           <div className="h-full overflow-y-auto">
           {/* Header */}
             <div className="p-6 pb-4 fade-in">
-              <h1 className="text-4xl font-bold font-mono mb-2 neon-glow" style={{color: '#33ff66'}}>Agent Phoenix</h1>
-              <p className="text-lg font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>&gt; Secret Name: Alexandra Chen</p>
+              <h1 className="text-4xl font-bold font-mono mb-2 neon-glow" style={{color: '#33ff66'}}>{userData?.agent || "Agent"}</h1>
+              <p className="text-lg font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>&gt; Secret Name: {userData?.name || ""}</p>
           </div>
 
             {/* Agent Info Card */}
