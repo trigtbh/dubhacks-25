@@ -55,9 +55,6 @@ async def create_all_challenges():
             clusters[category] = set()
         clusters[category].add(user["_id"])
 
-    print(clusters)
-
-
     for category, users in clusters.items():
         challenge_id = str(uuid4())
         if len(users) < 2: continue
