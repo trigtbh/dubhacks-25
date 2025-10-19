@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Request
 import os
 
+from api.mongo import cursor
+
 
 client_kwargs={
         'scope': 'openid email profile'
@@ -38,4 +40,20 @@ async def login(request: Request):
 async def auth(request: Request):
     token = await google.authorize_access_token(request)
     user = token['userinfo']
+
+    user = {
+        k: v for k, v in user.items()
+        if k in {"sub", "name", "email"}
+    }
+
+    user["current_mission"] = ""
+    user["previous_missions"] = []
+
+    user["uuid"] = user["sub"]
+    user["_id"] = user["sub"]
+
+    if not cursor["users"].find_one({"sub": user["sub"]}):
+        cursor["users"].insert_one(user)
+
     return user
+
