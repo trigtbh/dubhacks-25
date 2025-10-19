@@ -108,9 +108,9 @@ Cloudflare integration requires the following environment variables in `backend/
 ```json
 {
   "uuid": "string",
-  "skills": ["skill1", "skill2"],
-  "interests": ["interest1", "interest2"],
-  "hobbies": ["hobby1", "hobby2"],
+  "specialty": "skill1, skill2",
+  "fields": "field1, field2",
+  "interests_and_hobbies": "interest1, interest2, hobby1",
   "vibe": "personality description",
   "comfort": ["comfort1", "comfort2"],
   "availability": "schedule description"
@@ -127,12 +127,13 @@ Cloudflare integration requires the following environment variables in `backend/
     "users": [
       {
         "uuid": "user123",
-        "skills": ["Python", "JavaScript"],
-        "interests": ["AI", "Web Development"],
-        "hobbies": ["Reading", "Gaming"],
+        "specialty": "Python, JavaScript",
+        "fields": "Software Engineering, Web",
+        "interests_and_hobbies": "AI, Web Development, Reading",
         "vibe": "Creative and analytical",
         "comfort": ["Remote work", "Flexible hours"],
-        "availability": "Weekends and evenings"
+        "availability": "Weekends and evenings",
+        "handle": "@user123"
       }
     ]
   }

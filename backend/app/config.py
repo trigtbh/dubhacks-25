@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
 from typing import List
 import json
+import os
 
 class Settings(BaseSettings):
     # API Configuration
@@ -30,7 +31,7 @@ class Settings(BaseSettings):
     _google_redirect_path: str = "/auth/google/callback"
 
     # MongoDB Configuration
-    mongodb_uri: str | None = None
+    mongodb_uri: str | None = os.environ["MONGODB_URI"]
     session_secret_key: str = "super-secret-key"
 
     class Config:

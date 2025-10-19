@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import os
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +16,7 @@ from app.api import user_routes
 from app.api import auth_routes
 from app.api import challenge_routes
 from app.dependencies import get_current_user
+
 
 app = FastAPI(
     title="Unfreeze API",

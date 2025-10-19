@@ -1,12 +1,13 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any
 from datetime import datetime
 
+from app.api.auth_routes import parse_user
 from app.api.vectorization_routes import UserAttributes
 from app.dependencies import get_current_user
 
-router = APIRouter(prefix="/api/v1/users", tags=["User Management"], dependencies=[Depends(get_current_user)])
+router = APIRouter(prefix="/users", tags=["User Management"], dependencies=[Depends(get_current_user)])
 
 from app.api.mongo import cursor
 
@@ -33,18 +34,39 @@ class ListUsersResponse(BaseModel):
     total_count: int
     timestamp: str
 
-# ============================================================================
-# In-Memory Storage (Replace with database in production)
-# ============================================================================
 
-_users_store: Dict[str, UserAttributes] = {}
 
 # ============================================================================
 # User Management Endpoints
 # ============================================================================
+import os
+
+base = os.path.dirname(os.path.abspath(__file__))
+
+with open(os.path.join(base, "names.txt"), "r") as f:
+    AAAAA, BBBBB, CCCCC = f.read().split("\n\n")
+    a = AAAAA.split("\n")
+    b = BBBBB.split("\n")
+    c = CCCCC.split("\n")
+
+    a = [name.title() for name in a if name.strip()]
+    b = [name.title() for name in b if name.strip()]
+    c = [name.title() for name in c if name.strip()]
+
+import random
 
 def generate_agent_name():
-    return ""
+    n = random.choice(a) + " " + random.choice(b) + "-" + random.choice(c)
+    while cursor["users"].find_one({"agent": n}):
+        n = random.choice(a) + " " + random.choice(b) + "-" + random.choice(c)
+    return n
+
+@router.get("/whoami")
+async def whoami(request: Request):
+    return request.session.get("user")
+
+
+
 
 @router.post("/create", response_model=CreateUserResponse)
 async def create_user(request: UserAttributes):
@@ -60,32 +82,40 @@ async def create_user(request: UserAttributes):
     Returns:
         CreateUserResponse with created user information
     """
+    print(cursor)
     try:
-        uuid = request.user_attributes.uuid
+        uuid = request.uuid
 
         # Check if user already exists
-        if uuid in _users_store:
+        print(cursor)
+        # if uuid in _users_store:
+        if cursor["users"].find_one({"_id": uuid}):
             raise HTTPException(status_code=409, detail=f"User with ID '{uuid}' already exists")
+
+        
+
 
         # Store the user
         # _users_store[uuid] = request.user_attributes
         user_dict = {
+            "uuid": uuid,
             "_id": uuid,
-            "skills": request.skills,
-            "interests": request.interests,
-            "hobbies": request.hobbies,
+            "specialty": request.specialty,
+            "fields": request.fields,
+            "interests_and_hobbies": request.interests_and_hobbies,
             "vibe": request.vibe,
             "comfort": request.comfort,
             "availability": request.availability,
             "name": request.name,
+            "handle": request.handle,
             "agent": generate_agent_name()
         }
 
-        cursor.users.insert_one(user_dict)
+        cursor["users"].insert_one(user_dict)
 
         return CreateUserResponse(
             uuid=uuid,
-            user_attributes=request.user_attributes,
+            user_attributes=user_dict,
             timestamp=datetime.now().isoformat(),
             message=f"User '{uuid}' created successfully"
         )
@@ -93,6 +123,7 @@ async def create_user(request: UserAttributes):
     except HTTPException:
         raise
     except Exception as e:
+        raise e
         raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
 
 
@@ -107,13 +138,14 @@ async def get_user(uuid: str):
     Returns:
         GetUserResponse with user information
     """
+    print(cursor)
     try:
-        if uuid not in _users_store:
+        if not cursor["users"].find_one({"_id": uuid}):
             raise HTTPException(status_code=404, detail=f"User with ID '{uuid}' not found")
 
         return GetUserResponse(
             uuid=uuid,
-            user_attributes=_users_store[uuid],
+            user_attributes=cursor["users"].find_one({"_id": uuid}),
             timestamp=datetime.now().isoformat()
         )
 
@@ -132,7 +164,7 @@ async def list_users():
         ListUsersResponse with all users
     """
     try:
-        users = list(_users_store.values())
+        users = list(cursor["users"].find_many({}))
 
         return ListUsersResponse(
             users=users,

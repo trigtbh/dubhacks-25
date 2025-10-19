@@ -57,6 +57,8 @@ async def google_callback(request: Request):
         request.session["user"] = parse_user(token)
 
         response = RedirectResponse(url="/")
+        response.set_cookie(key="user", value=token)
+        
         return response
     
     except HTTPException:

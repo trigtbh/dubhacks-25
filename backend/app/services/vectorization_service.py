@@ -37,36 +37,34 @@ class UserVectorizationService:
         """
         parts = []
 
-        # Add skills with high weight (split by comma)
-        if hasattr(user, 'skills') and user.skills:
-            skills = [s.strip() for s in user.skills.split(',') if s.strip()]
-            parts.extend(skills * 3)  # Repeat skills for higher weight
+        # Specialty and fields (skill-like)
+        if getattr(user, 'specialty', None):
+            specialty_items = [s.strip() for s in user.specialty.split(',') if s.strip()]
+            parts.extend(specialty_items * 3)
 
-        # Add interests with high weight (split by comma)
-        if user.interests:
-            interests = [i.strip() for i in user.interests.split(',') if i.strip()]
-            parts.extend(interests * 3)  # Repeat interests for higher weight
+        if getattr(user, 'fields', None):
+            fields_items = [s.strip() for s in user.fields.split(',') if s.strip()]
+            parts.extend(fields_items * 2)
 
-        # Add vibe
-        if user.vibe:
-            parts.extend([user.vibe] * 2)  # Repeat vibe for medium weight
+        # Interests and hobbies combined
+        if getattr(user, 'interests_and_hobbies', None):
+            interests_items = [i.strip() for i in user.interests_and_hobbies.split(',') if i.strip()]
+            parts.extend(interests_items * 3)
 
-        # Add comfort preferences (split by comma)
-        if hasattr(user, 'comfort') and user.comfort:
-            comforts = [c.strip() for c in user.comfort.split(',') if c.strip()]
-            parts.extend(comforts * 2)  # Repeat comfort for higher weight
+        # Vibe
+        if getattr(user, 'vibe', None):
+            parts.extend([user.vibe] * 2)
 
-        # Add previous missions (already a list)
-        if user.previous_missions:
-            parts.extend(user.previous_missions)
+        # Comfort preferences
+        if getattr(user, 'comfort', None):
+            comfort_items = [c.strip() for c in user.comfort.split(',') if c.strip()]
+            parts.extend(comfort_items * 2)
 
-        # Add current mission
-        if user.current_mission:
-            parts.append(user.current_mission)
-
-        # Add name
-        if user.name:
+        # Name and handle as context
+        if getattr(user, 'name', None):
             parts.append(user.name)
+        if getattr(user, 'handle', None):
+            parts.append(user.handle)
 
         return " ".join(parts) if parts else "no attributes"
 
@@ -151,7 +149,7 @@ class UserVectorizationService:
 
         all_interests_sets = []
         for user in users_in_cluster:
-            user_interests = set(i.strip() for i in user.interests.split(',') if i.strip()) if user.interests else set()
+            user_interests = set(i.strip() for i in (getattr(user, 'interests_and_hobbies', '') or '').split(',') if i.strip())
             all_interests_sets.append(user_interests)
 
         if not all_interests_sets:
@@ -180,26 +178,28 @@ class UserVectorizationService:
 
         similarity_scores = []
 
-        # Skills similarity
-        if hasattr(user1, 'skills') and hasattr(user2, 'skills') and user1.skills and user2.skills:
-            skills1 = set(s.strip() for s in user1.skills.split(',') if s.strip())
-            skills2 = set(s.strip() for s in user2.skills.split(',') if s.strip())
-            intersection = len(skills1.intersection(skills2))
-            union = len(skills1.union(skills2))
-            if union > 0:
-                similarity_scores.append(intersection / union)  # Jaccard similarity
-
-        # Interests similarity
-        if user1.interests and user2.interests:
-            interests1 = set(i.strip() for i in user1.interests.split(',') if i.strip())
-            interests2 = set(i.strip() for i in user2.interests.split(',') if i.strip())
+        # Interests/hobbies similarity
+        interests1 = set(i.strip() for i in (getattr(user1, 'interests_and_hobbies', '') or '').split(',') if i.strip())
+        interests2 = set(i.strip() for i in (getattr(user2, 'interests_and_hobbies', '') or '').split(',') if i.strip())
+        if interests1 and interests2:
             intersection = len(interests1.intersection(interests2))
             union = len(interests1.union(interests2))
             if union > 0:
-                similarity_scores.append(intersection / union)  # Jaccard similarity
+                similarity_scores.append(intersection / union)
+
+        # Specialty/fields similarity
+        specs1 = set(s.strip() for s in (getattr(user1, 'specialty', '') or '').split(',') if s.strip())
+        specs1.update(s.strip() for s in (getattr(user1, 'fields', '') or '').split(',') if s.strip())
+        specs2 = set(s.strip() for s in (getattr(user2, 'specialty', '') or '').split(',') if s.strip())
+        specs2.update(s.strip() for s in (getattr(user2, 'fields', '') or '').split(',') if s.strip())
+        if specs1 and specs2:
+            intersection = len(specs1.intersection(specs2))
+            union = len(specs1.union(specs2))
+            if union > 0:
+                similarity_scores.append(intersection / union)
 
         # Comfort similarity
-        if hasattr(user1, 'comfort') and hasattr(user2, 'comfort') and user1.comfort and user2.comfort:
+        if getattr(user1, 'comfort', None) and getattr(user2, 'comfort', None):
             comforts1 = set(c.strip() for c in user1.comfort.split(',') if c.strip())
             comforts2 = set(c.strip() for c in user2.comfort.split(',') if c.strip())
             intersection = len(comforts1.intersection(comforts2))
@@ -208,7 +208,7 @@ class UserVectorizationService:
                 similarity_scores.append(intersection / union)
 
         if similarity_scores:
-            return np.mean(similarity_scores)
+            return float(np.mean(similarity_scores))
         return 0.0
 
     def extract_common_interests(self, user1: Any, user2: Any) -> List[str]:
@@ -222,6 +222,6 @@ class UserVectorizationService:
         Returns:
             List of common interests
         """
-        interests1 = set(i.strip() for i in user1.interests.split(',') if i.strip()) if user1.interests else set()
-        interests2 = set(i.strip() for i in user2.interests.split(',') if i.strip()) if user2.interests else set()
+        interests1 = set(i.strip() for i in (getattr(user1, 'interests_and_hobbies', '') or '').split(',') if i.strip())
+        interests2 = set(i.strip() for i in (getattr(user2, 'interests_and_hobbies', '') or '').split(',') if i.strip())
         return list(interests1.intersection(interests2))

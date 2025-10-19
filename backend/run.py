@@ -2,6 +2,10 @@
 Development server runner
 Run this file directly to start the FastAPI server
 """
+
+from dotenv import load_dotenv
+load_dotenv()
+
 import uvicorn
 from app.config import settings
 

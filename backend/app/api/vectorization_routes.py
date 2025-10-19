@@ -21,12 +21,14 @@ class UserAttributes(BaseModel):
     """User attributes that will be converted to vectors"""
     uuid: str
     name: str
-    skills: str = Field(default="", description="User skills as comma-separated string")
-    interests: str = Field(default="", description="User interests as comma-separated string")
-    hobbies: List[str] = Field(default_factory=list, description="List of user hobbies")
+    specialty: str = Field(default="", description="Primary skills or specialties (comma-separated)")
+    fields: str = Field(default="", description="Fields of work or study (comma-separated)")
+    interests_and_hobbies: str = Field(default="", description="Interests and hobbies (comma-separated)")
+
     vibe: str = Field(default="", description="User vibe or personality type")
     comfort: str = Field(default="", description="Comfort level and preferences")
     availability: str = Field(default="", description="User availability (e.g., weekdays, weekends, flexible)")
+    handle: str = Field(default="", description="User handle or username")
 
 class UserAttributesRequest(BaseModel):
     """Request to vectorize user attributes"""
@@ -95,37 +97,51 @@ def _create_user_text_representation(user: UserAttributes) -> str:
     This helps in creating meaningful embeddings.
     """
     parts = []
-    
-    # Add skills with high weight
-    if user.skills:
-        parts.extend(user.skills * 3)  # Repeat skills for higher weight
-    
-    # Add interests with high weight
-    if user.interests:
-        parts.extend(user.interests * 3)  # Repeat interests for higher weight
-    
-    # Add hobbies with medium weight
-    if user.hobbies:
-        parts.extend(user.hobbies * 2)  # Repeat hobbies for higher weight
-    
-    # Add vibe
+
+    # Specialty and fields (treated like skills)
+    if getattr(user, 'specialty', None):
+        specialty_items = [s.strip() for s in user.specialty.split(',') if s.strip()]
+        parts.extend(specialty_items * 3)
+
+    if getattr(user, 'fields', None):
+        fields_items = [s.strip() for s in user.fields.split(',') if s.strip()]
+        parts.extend(fields_items * 2)
+
+    # Interests and hobbies (single combined field, split and weight)
+    if getattr(user, 'interests_and_hobbies', None):
+        interests_items = [s.strip() for s in user.interests_and_hobbies.split(',') if s.strip()]
+        parts.extend(interests_items * 3)
+
+    # Vibe
     if user.vibe:
-        parts.extend([user.vibe] * 2)  # Repeat vibe for medium weight
-    
-    # Add comfort preferences
-    if user.comfort:
-        parts.extend(user.comfort * 2)  # Repeat comfort for higher weight
-    
-    # Add availability
+        parts.extend([user.vibe] * 2)
+
+    # Comfort preferences
+    if getattr(user, 'comfort', None):
+        comfort_items = [s.strip() for s in user.comfort.split(',') if s.strip()]
+        parts.extend(comfort_items * 2)
+
+    # Availability
     if user.availability:
         parts.append(user.availability)
-    
+
+    # Name and handle as context
+    if getattr(user, 'name', None):
+        parts.append(user.name)
+    if getattr(user, 'handle', None):
+        parts.append(user.handle)
+
     return " ".join(parts) if parts else "no attributes"
 
 def _extract_common_interests(user1: UserAttributes, user2: UserAttributes) -> List[str]:
     """Extract common interests between two users"""
-    interests1 = set(user1.interests) if user1.interests else set()
-    interests2 = set(user2.interests) if user2.interests else set()
+    def _get_interests(u: UserAttributes):
+        if getattr(u, 'interests_and_hobbies', None):
+            return set(i.strip() for i in u.interests_and_hobbies.split(',') if i.strip())
+        return set()
+
+    interests1 = _get_interests(user1)
+    interests2 = _get_interests(user2)
     return list(interests1.intersection(interests2))
 
 def _calculate_user_similarity(user1: UserAttributes, user2: UserAttributes) -> float:
@@ -134,27 +150,29 @@ def _calculate_user_similarity(user1: UserAttributes, user2: UserAttributes) -> 
         return 1.0
     
     similarity_scores = []
-    
-    # Interests similarity
-    if user1.interests and user2.interests:
-        interests1 = set(user1.interests)
-        interests2 = set(user2.interests)
+
+    # Interests/hobbies similarity (combined field)
+    interests1 = set(i.strip() for i in (user1.interests_and_hobbies or "").split(',') if i.strip())
+    interests2 = set(i.strip() for i in (user2.interests_and_hobbies or "").split(',') if i.strip())
+    if interests1 and interests2:
         intersection = len(interests1.intersection(interests2))
         union = len(interests1.union(interests2))
         if union > 0:
-            similarity_scores.append(intersection / union)  # Jaccard similarity
-    
-    # Skills similarity
-    if user1.skills and user2.skills:
-        skills1 = set(user1.skills)
-        skills2 = set(user2.skills)
-        intersection = len(skills1.intersection(skills2))
-        union = len(skills1.union(skills2))
+            similarity_scores.append(intersection / union)
+
+    # Specialty/fields similarity (treat both as skill-like)
+    specs1 = set(s.strip() for s in (getattr(user1, 'specialty', '') or "").split(',') if s.strip())
+    specs1.update(s.strip() for s in (getattr(user1, 'fields', '') or "").split(',') if s.strip())
+    specs2 = set(s.strip() for s in (getattr(user2, 'specialty', '') or "").split(',') if s.strip())
+    specs2.update(s.strip() for s in (getattr(user2, 'fields', '') or "").split(',') if s.strip())
+    if specs1 and specs2:
+        intersection = len(specs1.intersection(specs2))
+        union = len(specs1.union(specs2))
         if union > 0:
             similarity_scores.append(intersection / union)
-    
+
     if similarity_scores:
-        return np.mean(similarity_scores)
+        return float(np.mean(similarity_scores))
     return 0.0
 
 # ============================================================================
@@ -267,15 +285,19 @@ async def cluster_users(request: ClusterRequest):
             else:
                 avg_similarity = 1.0
             
-            # Find common interests
+            # Find common interests (using interests_and_hobbies field)
             common_interests = []
             if len(user_indices) > 0:
-                all_interests = [request.users[i].interests for i in user_indices]
+                all_interests = []
+                for i in user_indices:
+                    raw = getattr(request.users[i], 'interests_and_hobbies', '') or ''
+                    items = [s.strip() for s in raw.split(',') if s.strip()]
+                    all_interests.append(set(items))
+
                 if all_interests:
-                    # Find interests common to all users in cluster
-                    common = set(all_interests[0]) if all_interests[0] else set()
-                    for interests in all_interests[1:]:
-                        common = common.intersection(set(interests) if interests else set())
+                    common = all_interests[0]
+                    for s in all_interests[1:]:
+                        common = common.intersection(s)
                     common_interests = list(common)
             
             user_clusters.append(UserCluster(
