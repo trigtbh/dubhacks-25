@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import List
+import json
 
 class Settings(BaseSettings):
     # API Configuration
@@ -57,5 +58,11 @@ class Settings(BaseSettings):
         """Check if Google SSO is properly configured"""
         return bool(self.google_client_id and self.google_client_secret and self.google_redirect_uri)
 
-settings = Settings()
-
+try:
+    with open("secrets/googlesso.json", "r") as gsso:
+        gsettings = json.load(gsso)
+        settings = Settings(google_login="/auth/google/callback", google_client_id=gsettings["web"]["client_id"], google_client_secret=gsettings["web"]["client_secret"])
+except FileNotFoundError:
+    import sys
+    print("Error! Could not import `secrets/googlesso.json`!")
+    sys.exit(1)
