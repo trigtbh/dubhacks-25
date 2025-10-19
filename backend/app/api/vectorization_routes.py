@@ -10,25 +10,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from app.services.vectorization_service import UserVectorizationService
 from app.dependencies import get_current_user
+from app.api.user_schemas import UserAttributes
 
 router = APIRouter(prefix="/api/v1/users", tags=["User Vectorization & Clustering"], dependencies=[Depends(get_current_user)])
-
-# ============================================================================
-# Pydantic Models
-# ============================================================================
-
-class UserAttributes(BaseModel):
-    """User attributes that will be converted to vectors"""
-    uuid: str
-    name: str
-    specialty: str = Field(default="", description="Primary skills or specialties (comma-separated)")
-    fields: str = Field(default="", description="Fields of work or study (comma-separated)")
-    interests_and_hobbies: str = Field(default="", description="Interests and hobbies (comma-separated)")
-
-    vibe: str = Field(default="", description="User vibe or personality type")
-    comfort: str = Field(default="", description="Comfort level and preferences")
-    availability: str = Field(default="", description="User availability (e.g., weekdays, weekends, flexible)")
-    handle: str = Field(default="", description="User handle or username")
 
 class UserAttributesRequest(BaseModel):
     """Request to vectorize user attributes"""

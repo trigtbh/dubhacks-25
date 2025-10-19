@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 from datetime import datetime
 
 from app.api.auth_routes import parse_user
-from app.api.vectorization_routes import UserAttributes
+from app.api.user_schemas import UserAttributes
 from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/users", tags=["User Management"], dependencies=[Depends(get_current_user)])
