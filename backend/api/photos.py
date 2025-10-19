@@ -16,6 +16,27 @@ class PhotoUploadResponse(BaseModel):
     identifier: str
     url: str
 
+@photo_router.get("/all")
+async def get_all_photos():
+    entries = []
+    for fname in os.listdir(photos_dir):
+        file_path = os.path.join(photos_dir, fname)
+        if os.path.isfile(file_path):
+            try:
+                ctime = os.path.getctime(file_path)
+            except Exception:
+                ctime = 0
+            identifier = fname.split('.')[0]
+            url = f"/photos/{identifier}"
+            entries.append({"identifier": identifier, "url": url, "created": ctime})
+
+    # sort by creation time (latest first)
+    entries.sort(key=lambda e: e.get("created", 0), reverse=True)
+
+    # strip creation timestamp from response (if you want timestamps included, keep them)
+    photos = [{"identifier": e["identifier"], "url": e["url"]} for e in entries]
+    return photos
+
 
 @photo_router.post("/upload", response_model=PhotoUploadResponse)
 async def upload_photo(file: UploadFile = File(...)):
