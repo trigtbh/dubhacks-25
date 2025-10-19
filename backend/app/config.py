@@ -14,21 +14,13 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:3000"
     ]
-    
-    # Cloudflare Configuration
-    cloudflare_account_id: str | None = None
-    cloudflare_api_token: str | None = None
-    cloudflare_d1_database_id: str | None = None
-    cloudflare_r2_account_id: str | None = None
-    cloudflare_r2_access_key_id: str | None = None
-    cloudflare_r2_secret_access_key: str | None = None
-    cloudflare_r2_bucket_name: str | None = None
-    cloudflare_kv_namespace_id: str | None = None
 
     # Google SSO Configuration
     google_client_id: str | None = None
     google_client_secret: str | None = None
     _google_redirect_path: str = "/auth/google/callback"
+
+    gemini_api_key: str | None = None
 
     # MongoDB Configuration
     mongodb_uri: str | None = os.environ["MONGODB_URI"]
@@ -52,40 +44,33 @@ class Settings(BaseSettings):
     def google_redirect_uri(self) -> str:
         """Constructs the full Google OAuth redirect URI."""
         return f"{self.base_url}{self._google_redirect_path}"
-        
-    @property
-    def cloudflare_configured(self) -> bool:
-        """Check if Cloudflare is properly configured"""
-        return bool(self.cloudflare_account_id and self.cloudflare_api_token)
-    
-    @property
-    def cloudflare_d1_configured(self) -> bool:
-        """Check if Cloudflare D1 database is configured"""
-        return bool(self.cloudflare_account_id and self.cloudflare_api_token and self.cloudflare_d1_database_id)
-    
-    @property
-    def cloudflare_r2_configured(self) -> bool:
-        """Check if Cloudflare R2 storage is configured"""
-        return bool(
-            self.cloudflare_r2_account_id and 
-            self.cloudflare_r2_access_key_id and 
-            self.cloudflare_r2_secret_access_key and 
-            self.cloudflare_r2_bucket_name
-        )
 
     @property
     def google_sso_configured(self) -> bool:
         """Check if Google SSO is properly configured"""
         return bool(self.google_client_id and self.google_client_secret and self.google_redirect_uri)
 
+
+
 try:
     with open("secrets/googlesso.json", "r") as gsso:
         gsettings = json.load(gsso)
-        settings = Settings(
-            google_client_id=gsettings["web"]["client_id"],
-            google_client_secret=gsettings["web"]["client_secret"]
-        )
 except FileNotFoundError:
     import sys
     print("Error! Could not import `secrets/googlesso.json`!")
     sys.exit(1)
+
+try:
+    with open("secrets/gemini.txt", "r") as g:
+        gemini = g.read()
+except FileNotFoundError:
+    import sys
+    print("Error! Could not import `secrets/gemini.txt`!")
+    sys.exit(1)
+
+
+settings = Settings(
+    google_client_id=gsettings["web"]["client_id"],
+    google_client_secret=gsettings["web"]["client_secret"],
+    gemini_api_key=gemini
+)

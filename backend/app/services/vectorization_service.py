@@ -1,227 +1,41 @@
-"""
-Vectorization and Clustering Service
+from google import genai
+from google.genai import types
+from app.config import settings
+from typing import List
 
-This module provides core functionality for user vectorization and clustering
-based on user attributes and interests.
-"""
+client = genai.Client(api_key=settings.gemini_api_key)
 
-from typing import List, Dict, Any, Set
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.cluster import KMeans
-from sklearn.metrics.pairwise import cosine_similarity
+def embed_content(content: str):
+    return client.models.embed_content(
+        model="gemini-embedding-001",
+        contents=content,
+        config=types.EmbedContentConfig(output_dimensionality=768)
+    ).embeddings[0].values
 
+def dist(vec1: List[float], vec2: List[float]) -> float:
+    return sum((x - y)**2 for x,y in zip(vec1, vec2)) ** 0.5
 
-class UserVectorizationService:
-    """Service for vectorizing and clustering users based on their attributes"""
+personas = [
+    ["The Coffeehouse Creator", "I’m the kind of person who brings a sketchpad everywhere. I love designing interfaces, doodling random characters, and finding hidden-gem coffee shops with chill playlists. Most nights, you’ll catch me working late with lo-fi beats and a cortado. I get inspired by aesthetics, indie games, and conversations that turn into creative projects."],
+    ["The Outdoors Hacker", "When I’m not coding, I’m hiking, rock climbing, or planning my next camping trip. I love solving problems that connect tech and the environment — solar energy, mapping trails, or anything sustainability-related. My best ideas always come when I’m halfway up a mountain or sitting by a campfire with friends."],
+    ["The Chill Gamer", "I’m a night owl who loves winding down with co-op games and anime marathons. I’m easygoing, love meme humor, and tend to make spontaneous side projects just for fun. Hackathons are my way of meeting like-minded folks who don’t take themselves too seriously but still build cool stuff."],
+    ["The Social Catalyst", "I’m here mostly for the people — I get energy from talking ideas into existence. Whether it’s hosting game nights, organizing brainstorms, or making sure everyone gets a voice, I thrive on collaboration. Outside of hackathons, I’m usually at concerts, trivia nights, or exploring new restaurants with friends."],
+    ["The Deep Thinker", "I’m into philosophy, psychology, and quiet spaces where ideas can unfold. I love long walks with podcasts, journaling, and working on projects that explore human behavior or emotion. I tend to dive deep into whatever I’m learning and love discussions that challenge assumptions."],
+    ["The Fitness Futurist", "I’m obsessed with self-improvement — tracking workouts, optimizing routines, and experimenting with biohacking tools. My weekends are a mix of trail runs, gym sessions, and reading about nutrition or longevity science. I like building projects that make people healthier or more mindful."],
+    ["The Global Nomad", "I’ve been traveling for years, working from different cities, and collecting stories from everywhere I go. I love meeting people from different backgrounds, trying new foods, and photographing street life. My favorite hackathon projects usually solve real-world problems with an international twist."],
+    ["The Music Maker", "Music runs everything for me — I produce beats, go to small shows, and DJ for fun when I can. I love anything with rhythm, from coding flow sessions to late-night jam circles. If we work together, expect a curated playlist and spontaneous dance breaks."],
+    ["The Cozy Coder", "I’m all about cozy vibes — blankets, tea, and a playlist of movie scores while I code. I love small creative projects, story-driven games, and slow mornings with good books. My ideal hackathon team feels like a mini family where everyone supports each other."],
+    ["The Builder Dreamer", "I get hooked on ideas that feel a little bit impossible. I love tinkering with prototypes, starting side hustles, and learning by doing. When I’m not working on something new, I’m watching documentaries about inventors or sketching wild product ideas. I’m equal parts idealist and hands-on maker."]
+]
 
-    def __init__(self, max_features: int = 100):
-        """Initialize the vectorization service
+embeddings = [embed_content(c) for n, c in personas]
 
-        Args:
-            max_features: Maximum number of features for TF-IDF vectorization
-        """
-        self.max_features = max_features
-        self.vectorizer = None
+import json
+with open("personas.json", "w") as f:
+    json.dump(embeddings, f)
 
-    def create_user_text_representation(self, user) -> str:
-        """
-        Convert user attributes into a text representation for vectorization.
-        This helps in creating meaningful embeddings.
+def classify(content: str) -> int:
+    user = embed_content(content)
+    return min(((i, dist(user, e)) for i, e in enumerate(embeddings)), key=lambda x: x[1])[0]
 
-        Args:
-            user: User object with attributes
-
-        Returns:
-            Text representation of user attributes
-        """
-        parts = []
-
-        # Specialty and fields (skill-like)
-        if getattr(user, 'specialty', None):
-            specialty_items = [s.strip() for s in user.specialty.split(',') if s.strip()]
-            parts.extend(specialty_items * 3)
-
-        if getattr(user, 'fields', None):
-            fields_items = [s.strip() for s in user.fields.split(',') if s.strip()]
-            parts.extend(fields_items * 2)
-
-        # Interests and hobbies combined
-        if getattr(user, 'interests_and_hobbies', None):
-            interests_items = [i.strip() for i in user.interests_and_hobbies.split(',') if i.strip()]
-            parts.extend(interests_items * 3)
-
-        # Vibe
-        if getattr(user, 'vibe', None):
-            parts.extend([user.vibe] * 2)
-
-        # Comfort preferences
-        if getattr(user, 'comfort', None):
-            comfort_items = [c.strip() for c in user.comfort.split(',') if c.strip()]
-            parts.extend(comfort_items * 2)
-
-        # Name and handle as context
-        if getattr(user, 'name', None):
-            parts.append(user.name)
-        if getattr(user, 'handle', None):
-            parts.append(user.handle)
-
-        return " ".join(parts) if parts else "no attributes"
-
-    def vectorize_users(self, users: List[Any]) -> tuple:
-        """
-        Convert user attributes into vector representations using TF-IDF vectorization.
-
-        Args:
-            users: List of user objects with attributes
-
-        Returns:
-            Tuple of (vectors_array, vectorizer)
-        """
-        # Create text representations for each user
-        user_texts = [self.create_user_text_representation(user) for user in users]
-
-        # Vectorize using TF-IDF
-        self.vectorizer = TfidfVectorizer(
-            max_features=self.max_features,
-            lowercase=True,
-            stop_words='english'
-        )
-        vectors = self.vectorizer.fit_transform(user_texts).toarray()
-
-        return vectors, self.vectorizer
-
-    def cluster_users(self, users: List[Any], vectors: np.ndarray, num_clusters: int) -> Dict[int, List[int]]:
-        """
-        Cluster users based on their vector representations using K-Means.
-
-        Args:
-            users: List of user objects
-            vectors: Vector representations of users
-            num_clusters: Number of clusters to create
-
-        Returns:
-            Dictionary mapping cluster_id to list of user indices
-        """
-        # Apply K-Means clustering
-        kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
-        cluster_labels = kmeans.fit_predict(vectors)
-
-        # Group users by cluster
-        clusters_dict = {}
-        for idx, label in enumerate(cluster_labels):
-            if label not in clusters_dict:
-                clusters_dict[label] = []
-            clusters_dict[label].append(idx)
-
-        return clusters_dict
-
-    def calculate_cluster_similarity(self, cluster_vectors: np.ndarray) -> float:
-        """
-        Calculate average pairwise similarity within a cluster.
-
-        Args:
-            cluster_vectors: Vectors for users in the cluster
-
-        Returns:
-            Average similarity score within the cluster
-        """
-        if len(cluster_vectors) <= 1:
-            return 1.0
-
-        similarities = cosine_similarity(cluster_vectors)
-        # Get upper triangle values (pairwise similarities)
-        upper_triangle = similarities[np.triu_indices_from(similarities, k=1)]
-        return float(np.mean(upper_triangle)) if len(upper_triangle) > 0 else 0.0
-
-    def find_common_interests(self, users_in_cluster: List[Any]) -> List[str]:
-        """
-        Find interests common to all users in a cluster.
-
-        Args:
-            users_in_cluster: List of user objects in the cluster
-
-        Returns:
-            List of interests common to all users
-        """
-        if not users_in_cluster:
-            return []
-
-        all_interests_sets = []
-        for user in users_in_cluster:
-            user_interests = set(i.strip() for i in (getattr(user, 'interests_and_hobbies', '') or '').split(',') if i.strip())
-            all_interests_sets.append(user_interests)
-
-        if not all_interests_sets:
-            return []
-
-        # Find interests common to all users in cluster
-        common = all_interests_sets[0]
-        for interests_set in all_interests_sets[1:]:
-            common = common.intersection(interests_set)
-
-        return list(common)
-
-    def calculate_user_similarity(self, user1: Any, user2: Any) -> float:
-        """
-        Calculate similarity between two users based on their attributes.
-
-        Args:
-            user1: First user object
-            user2: Second user object
-
-        Returns:
-            Similarity score between 0 and 1
-        """
-        if user1.uuid == user2.uuid:
-            return 1.0
-
-        similarity_scores = []
-
-        # Interests/hobbies similarity
-        interests1 = set(i.strip() for i in (getattr(user1, 'interests_and_hobbies', '') or '').split(',') if i.strip())
-        interests2 = set(i.strip() for i in (getattr(user2, 'interests_and_hobbies', '') or '').split(',') if i.strip())
-        if interests1 and interests2:
-            intersection = len(interests1.intersection(interests2))
-            union = len(interests1.union(interests2))
-            if union > 0:
-                similarity_scores.append(intersection / union)
-
-        # Specialty/fields similarity
-        specs1 = set(s.strip() for s in (getattr(user1, 'specialty', '') or '').split(',') if s.strip())
-        specs1.update(s.strip() for s in (getattr(user1, 'fields', '') or '').split(',') if s.strip())
-        specs2 = set(s.strip() for s in (getattr(user2, 'specialty', '') or '').split(',') if s.strip())
-        specs2.update(s.strip() for s in (getattr(user2, 'fields', '') or '').split(',') if s.strip())
-        if specs1 and specs2:
-            intersection = len(specs1.intersection(specs2))
-            union = len(specs1.union(specs2))
-            if union > 0:
-                similarity_scores.append(intersection / union)
-
-        # Comfort similarity
-        if getattr(user1, 'comfort', None) and getattr(user2, 'comfort', None):
-            comforts1 = set(c.strip() for c in user1.comfort.split(',') if c.strip())
-            comforts2 = set(c.strip() for c in user2.comfort.split(',') if c.strip())
-            intersection = len(comforts1.intersection(comforts2))
-            union = len(comforts1.union(comforts2))
-            if union > 0:
-                similarity_scores.append(intersection / union)
-
-        if similarity_scores:
-            return float(np.mean(similarity_scores))
-        return 0.0
-
-    def extract_common_interests(self, user1: Any, user2: Any) -> List[str]:
-        """
-        Extract common interests between two users.
-
-        Args:
-            user1: First user object
-            user2: Second user object
-
-        Returns:
-            List of common interests
-        """
-        interests1 = set(i.strip() for i in (getattr(user1, 'interests_and_hobbies', '') or '').split(',') if i.strip())
-        interests2 = set(i.strip() for i in (getattr(user2, 'interests_and_hobbies', '') or '').split(',') if i.strip())
-        return list(interests1.intersection(interests2))
+print("You are:", personas[classify(input("> "))][0])
