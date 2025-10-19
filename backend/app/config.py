@@ -28,7 +28,10 @@ class Settings(BaseSettings):
     google_client_id: str | None = None
     google_client_secret: str | None = None
     google_redirect_uri: str | None = None
-    
+
+    # Session Configuration
+    session_secret_key: str = "super-secret-key" # CHANGE THIS IN PRODUCTION ENVIRONMENT
+
     class Config:
         env_file = ".env"
         case_sensitive = False

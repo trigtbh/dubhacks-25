@@ -1,5 +1,7 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from datetime import datetime
 from app.config import settings
 from app.api import routes
@@ -21,6 +23,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add Session Middleware for OAuth
+app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
 
 # Include API routes
 app.include_router(routes.router)
