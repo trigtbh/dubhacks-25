@@ -30,6 +30,7 @@ export default function Home() {
   const [userData, setUserData] = useState<AgentProfile | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<AgentProfile[] | null>(null);
   const [userPlacement, setUserPlacement] = useState(-1);
+  const [userLore, setLore] = useState("");
   
   // Images array
   const images = [
@@ -67,6 +68,14 @@ export default function Home() {
       const req = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/placement/${Cookies.get("userid")}`);
       const json = await req.json();
       setUserPlacement(json.placement);
+    })().catch(e => console.error(e));
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const req = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/summary/${Cookies.get("userid")}`);
+      const txt = await req.text();
+      setLore(txt);
     })().catch(e => console.error(e));
   }, []);
 
@@ -197,7 +206,7 @@ export default function Home() {
                 {!isAgentInfoCollapsed && (
                   <div className="px-5 pb-5">
                     <p className="text-base leading-relaxed font-mono" style={{color: 'rgba(51, 255, 102, 0.7)', lineHeight: '1.7'}}>
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                      { userLore }
                     </p>
                   </div>
                 )}
