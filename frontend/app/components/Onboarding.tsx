@@ -273,7 +273,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   // Show final message and splash for EIGHTH page
   useEffect(() => {
     if (currentStep === 10) {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/inputs`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/inputs`, {
         method: "POST",
         body: JSON.stringify({inputs: [selectedSpecialty, ...selectedInterests, dubhacksProject, hobbies, selectedPersonality, selectedRiskLevel]})
       }).catch(err => console.error(err));
