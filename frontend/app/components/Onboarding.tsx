@@ -113,8 +113,8 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
   if (currentStep === 0) {
     return (
-      <div className="h-screen flex items-center justify-center px-4" style={{backgroundColor: '#141414'}}>
-        <h1 className="text-4xl font-bold font-mono whitespace-nowrap" style={{color: '#2CFF05', letterSpacing: '0.1em'}}>
+      <div className="h-screen flex items-center justify-center px-4" style={{backgroundColor: '#0d0d0d'}}>
+        <h1 className="text-4xl font-bold font-mono whitespace-nowrap neon-glow" style={{color: '#33ff66', letterSpacing: '0.1em'}}>
           {scrambledText || 'A B C D E F G H I'}
         </h1>
       </div>
@@ -123,35 +123,35 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
   if (currentStep === 1) {
     return (
-      <div className="h-screen relative" style={{backgroundColor: '#141414'}}>
+      <div className="h-screen relative" style={{backgroundColor: '#0d0d0d'}}>
         {/* Spy symbol at 30% from top */}
         {showSvg && (
-          <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 fade-in">
             <Logo />
           </div>
         )}
 
         {/* Audio bar on top of spy symbol */}
         {showAudioBar && (
-          <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+          <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 fade-in">
             <AudioBar />
           </div>
         )}
 
         {/* Subtitle */}
         {showSubtitle && (
-          <div className="absolute bottom-20 left-4 right-4 text-center">
-            <p className="text-lg font-mono" style={{color: '#28D14C'}}>
-              this is mission control, what's your name
-            </p>
+          <div className="absolute bottom-20 left-4 right-4 flex justify-center">
+            <div className="typewriter text-lg font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>
+              This is mission control.
+            </div>
           </div>
         )}
 
         {/* Form at 30% from bottom */}
         {showForm && (
-          <div className="absolute bottom-1/3 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-            <div className="w-80 p-6 rounded-lg border" style={{backgroundColor: '#141414', borderColor: '#28D14C'}}>
-              <h2 className="text-2xl font-bold font-mono mb-4" style={{color: '#2CFF05'}}>
+          <div className="absolute bottom-1/3 left-1/2 transform -translate-x-1/2 translate-y-1/2 fade-in">
+            <div className="w-80 p-6 rounded-lg border neon-border" style={{backgroundColor: 'rgba(26, 26, 26, 0.8)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(10px)'}}>
+              <h2 className="text-2xl font-bold font-mono mb-4" style={{color: '#33ff66'}}>
                 Secret Name:
               </h2>
               <div className="flex items-center gap-2">
@@ -160,14 +160,14 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                   value={formData.secretName}
                   onChange={(e) => handleInputChange('secretName', e.target.value)}
                   className="flex-1 px-3 py-2 rounded border font-mono"
-                  style={{backgroundColor: '#222222', borderColor: '#28D14C', color: '#2CFF05'}}
+                  style={{backgroundColor: '#0d0d0d', borderColor: 'rgba(51, 255, 102, 0.4)', color: '#33ff66'}}
                   placeholder="Enter your name"
                 />
                 <button
                   onClick={handleNext}
                   disabled={!formData.secretName.trim()}
-                  className="p-2 rounded disabled:opacity-50"
-                  style={{backgroundColor: '#2CFF05', color: '#141414'}}
+                  className="p-2 rounded disabled:opacity-50 transition-all hover:scale-105"
+                  style={{backgroundColor: '#2CFF05', color: '#0a0a0a', boxShadow: '0 0 10px rgba(51, 255, 102, 0.4)'}}
                 >
                   <ArrowRight size={20} />
                 </button>
@@ -181,7 +181,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
   if (currentStep === 2) {
     return (
-      <div className="h-screen relative" style={{backgroundColor: '#141414'}}>
+      <div className="h-screen relative" style={{backgroundColor: '#0d0d0d'}}>
         {/* Spy symbol at 30% from top */}
         <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <Logo />
@@ -194,18 +194,18 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
         {/* Subtitle */}
         {showSubtitle && (
-          <div className="absolute bottom-20 left-4 right-4 text-center">
-            <p className="text-lg font-mono" style={{color: '#28D14C'}}>
+          <div className="absolute bottom-20 left-4 right-4 flex justify-center">
+            <div className="typewriter text-lg font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>
               this is another page
-            </p>
+            </div>
           </div>
         )}
 
         {/* Form at 30% from bottom */}
         {showForm && (
-          <div className="absolute bottom-1/3 left-1/2 transform -translate-x-1/2 translate-y-1/2">
-            <div className="w-80 p-6 rounded-lg border" style={{backgroundColor: '#141414', borderColor: '#28D14C'}}>
-              <h2 className="text-2xl font-bold font-mono mb-4" style={{color: '#2CFF05'}}>
+          <div className="absolute bottom-1/3 left-1/2 transform -translate-x-1/2 translate-y-1/2 fade-in">
+            <div className="w-80 p-6 rounded-lg border neon-border" style={{backgroundColor: 'rgba(26, 26, 26, 0.8)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(10px)'}}>
+              <h2 className="text-2xl font-bold font-mono mb-4" style={{color: '#33ff66'}}>
                 second page
               </h2>
               <div className="flex items-center gap-2">
@@ -214,14 +214,14 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                   value={formData.secondPage}
                   onChange={(e) => handleInputChange('secondPage', e.target.value)}
                   className="flex-1 px-3 py-2 rounded border font-mono"
-                  style={{backgroundColor: '#222222', borderColor: '#28D14C', color: '#2CFF05'}}
+                  style={{backgroundColor: '#0d0d0d', borderColor: 'rgba(51, 255, 102, 0.4)', color: '#33ff66'}}
                   placeholder="Enter something"
                 />
                 <button
                   onClick={handleNext}
                   disabled={!formData.secondPage.trim()}
-                  className="p-2 rounded disabled:opacity-50"
-                  style={{backgroundColor: '#2CFF05', color: '#141414'}}
+                  className="p-2 rounded disabled:opacity-50 transition-all hover:scale-105"
+                  style={{backgroundColor: '#2CFF05', color: '#0a0a0a', boxShadow: '0 0 10px rgba(51, 255, 102, 0.4)'}}
                 >
                   <ArrowRight size={20} />
                 </button>
@@ -235,8 +235,8 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
   if (currentStep === 3) {
     return (
-      <div className="h-screen flex items-center justify-center px-4" style={{backgroundColor: '#141414'}}>
-        <h1 className="text-4xl font-bold font-mono whitespace-nowrap" style={{color: '#2CFF05', letterSpacing: '0.1em'}}>
+      <div className="h-screen flex items-center justify-center px-4" style={{backgroundColor: '#0d0d0d'}}>
+        <h1 className="text-4xl font-bold font-mono whitespace-nowrap neon-glow fade-in" style={{color: '#33ff66', letterSpacing: '0.1em'}}>
           U N F R E E Z E
         </h1>
       </div>

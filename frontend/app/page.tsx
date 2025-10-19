@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Crosshair, Crown, Edit, UserLock, MapPin, ShieldCheck } from 'lucide-react';
+import { User, Crosshair, Crown, Edit, UserLock, MapPin, ShieldCheck, ChevronDown, ChevronUp } from 'lucide-react';
 import Onboarding from './components/Onboarding';
 
 export default function Home() {
@@ -11,6 +11,7 @@ export default function Home() {
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isAgentInfoCollapsed, setIsAgentInfoCollapsed] = useState(false);
 
   // Countdown timer effect
   useEffect(() => {
@@ -71,62 +72,79 @@ export default function Home() {
   return (
           <div className="h-full overflow-y-auto">
           {/* Header */}
-            <div className="p-6 pb-4">
-              <h1 className="text-4xl font-bold font-mono mb-2" style={{color: '#2CFF05'}}>Agent Phoenix</h1>
-              <p className="text-lg font-mono" style={{color: '#28D14C'}}>&gt; Secret Name: Alexandra Chen</p>
+            <div className="p-6 pb-4 fade-in">
+              <h1 className="text-4xl font-bold font-mono mb-2 neon-glow" style={{color: '#33ff66'}}>Agent Phoenix</h1>
+              <p className="text-lg font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>&gt; Secret Name: Alexandra Chen</p>
           </div>
 
             {/* Agent Info Card */}
-            <div className="mx-6 mb-6">
-              <div className="rounded-lg shadow-sm border p-4" style={{backgroundColor: '#141414', borderColor: '#28D14C'}}>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-2xl font-semibold font-mono" style={{color: '#2CFF05'}}>Agent Info</h2>
-                  <button onClick={() => setIsEditingProfile(true)}>
-                    <Edit size={20} style={{color: '#28D14C'}} />
-                  </button>
+            <div className="mx-6 mb-6 fade-in">
+              <div className="rounded-lg border neon-border" style={{backgroundColor: 'rgba(26, 26, 26, 0.6)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(5px)'}}>
+                <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setIsAgentInfoCollapsed(!isAgentInfoCollapsed)}>
+                  <h2 className="text-2xl font-semibold font-mono" style={{color: '#33ff66'}}>Agent Info</h2>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsEditingProfile(true);
+                      }} 
+                      className="hover:scale-110 transition-transform"
+                    >
+                      <Edit size={20} style={{color: 'rgba(51, 255, 102, 0.8)'}} />
+                    </button>
+                    {isAgentInfoCollapsed ? (
+                      <ChevronDown size={24} style={{color: 'rgba(51, 255, 102, 0.8)'}} />
+                    ) : (
+                      <ChevronUp size={24} style={{color: 'rgba(51, 255, 102, 0.8)'}} />
+                    )}
+                  </div>
                 </div>
-                <p className="text-base leading-relaxed font-mono" style={{color: '#28D14C'}}>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-                </p>
+                {!isAgentInfoCollapsed && (
+                  <div className="px-5 pb-5">
+                    <p className="text-base leading-relaxed font-mono" style={{color: 'rgba(51, 255, 102, 0.7)', lineHeight: '1.7'}}>
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                    </p>
+                  </div>
+                )}
               </div>
               </div>
               
             {/* Previous Missions Card */}
-            <div className="mx-6 mb-6">
-              <div className="rounded-lg shadow-sm border" style={{backgroundColor: '#141414', borderColor: '#28D14C'}}>
-                <div className="p-4 border-b" style={{borderColor: '#28D14C'}}>
-                  <h2 className="text-2xl font-semibold font-mono" style={{color: '#2CFF05'}}>Previous Missions</h2>
+            <div className="mx-6 mb-6 fade-in">
+              <div className="rounded-lg border neon-border" style={{backgroundColor: 'rgba(26, 26, 26, 0.6)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(5px)'}}>
+                <div className="p-4 border-b" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
+                  <h2 className="text-2xl font-semibold font-mono" style={{color: '#33ff66'}}>Previous Missions</h2>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
-                  <div className="p-3 border-b" style={{borderColor: '#28D14C'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: '#28D14C'}}>Mission 1</h3>
+                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
+                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 1</h3>
                   </div>
-                  <div className="p-3 border-b" style={{borderColor: '#28D14C'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: '#28D14C'}}>Mission 2</h3>
+                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
+                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 2</h3>
                   </div>
-                  <div className="p-3 border-b" style={{borderColor: '#28D14C'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: '#28D14C'}}>Mission 3</h3>
+                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
+                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 3</h3>
                   </div>
-                  <div className="p-3 border-b" style={{borderColor: '#28D14C'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: '#28D14C'}}>Mission 4</h3>
+                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
+                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 4</h3>
                   </div>
-                  <div className="p-3 border-b" style={{borderColor: '#28D14C'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: '#28D14C'}}>Mission 5</h3>
+                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
+                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 5</h3>
                   </div>
-                  <div className="p-3 border-b" style={{borderColor: '#28D14C'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: '#28D14C'}}>Mission 6</h3>
+                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
+                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 6</h3>
                   </div>
-                  <div className="p-3 border-b" style={{borderColor: '#28D14C'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: '#28D14C'}}>Mission 7</h3>
+                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
+                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 7</h3>
                   </div>
-                  <div className="p-3 border-b" style={{borderColor: '#28D14C'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: '#28D14C'}}>Mission 8</h3>
+                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
+                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 8</h3>
                   </div>
-                  <div className="p-3 border-b" style={{borderColor: '#28D14C'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: '#28D14C'}}>Mission 9</h3>
+                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
+                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 9</h3>
                   </div>
-                  <div className="p-3">
-                    <h3 className="font-medium text-base font-mono" style={{color: '#28D14C'}}>Mission 10</h3>
+                  <div className="p-3 hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer">
+                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 10</h3>
                   </div>
                 </div>
               </div>
@@ -137,45 +155,48 @@ export default function Home() {
         return (
           <div className="h-full overflow-y-auto">
             {/* Header */}
-            <div className="p-6 pb-4">
-              <h1 className="text-4xl font-bold font-mono mb-2" style={{color: '#2CFF05'}}>Current Mission</h1>
-              <p className="text-lg font-mono" style={{color: '#28D14C'}}>&gt; Operation: Caffeine-Withdrawal</p>
+            <div className="p-6 pb-4 fade-in">
+              <h1 className="text-4xl font-bold font-mono mb-2 neon-glow" style={{color: '#33ff66'}}>Current Mission</h1>
+              <p className="text-lg font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>&gt; Operation: Caffeine-Withdrawal</p>
             </div>
 
             {/* Countdown Timer */}
-            <div className="px-6 mb-8 text-center">
-              <div className="text-6xl font-mono font-bold text-red-600">
+            <div className="px-6 mb-8 text-center fade-in">
+              <div className="text-6xl font-mono font-bold pulse" style={{
+                color: timeLeft < 60 ? '#FF0000' : timeLeft < 300 ? '#FF9500' : '#FF0000',
+                textShadow: timeLeft < 60 ? '0 0 20px #FF0000, 0 0 40px #FF0000' : '0 0 10px #FF0000, 0 0 20px #FF0000'
+              }}>
                 {formatTime(timeLeft)}
               </div>
             </div>
 
             {/* Mission Details Card */}
-            <div className="mx-6 mb-6">
-              <div className="rounded-lg shadow-sm border p-4" style={{backgroundColor: '#141414', borderColor: '#28D14C'}}>
+            <div className="mx-6 mb-6 fade-in">
+              <div className="rounded-lg border p-5 neon-border" style={{backgroundColor: 'rgba(26, 26, 26, 0.6)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(5px)'}}>
                 {/* Co-Op Section */}
-                <div className="flex items-center mb-4">
-                  <UserLock size={24} style={{color: '#2CFF05'}} className="mr-3" />
+                <div className="flex items-center mb-5">
+                  <UserLock size={24} style={{color: '#33ff66'}} className="mr-3" />
                   <div>
-                    <span className="text-2xl font-semibold font-mono" style={{color: '#2CFF05'}}>Co-Op:</span>
-                    <p className="text-base font-mono" style={{color: '#28D14C'}}>Agent Nebula</p>
+                    <span className="text-2xl font-semibold font-mono" style={{color: '#33ff66'}}>Co-Op:</span>
+                    <p className="text-base font-mono mt-1" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Agent Nebula</p>
                   </div>
                 </div>
 
                 {/* Rendezvous Section */}
                 <div className="flex items-center mb-6">
-                  <MapPin size={24} style={{color: '#2CFF05'}} className="mr-3" />
+                  <MapPin size={24} style={{color: '#33ff66'}} className="mr-3" />
                 <div>
-                    <span className="text-2xl font-semibold font-mono" style={{color: '#2CFF05'}}>Rendezvous:</span>
-                    <p className="text-base font-mono" style={{color: '#28D14C'}}>Redbull Fridge</p>
+                    <span className="text-2xl font-semibold font-mono" style={{color: '#33ff66'}}>Rendezvous:</span>
+                    <p className="text-base font-mono mt-1" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Redbull Fridge</p>
                   </div>
                 </div>
 
                 {/* Task Section - 2x size */}
                 <div className="flex items-start">
-                  <ShieldCheck size={24} style={{color: '#2CFF05'}} className="mr-3 mt-1" />
+                  <ShieldCheck size={24} style={{color: '#33ff66'}} className="mr-3 mt-1" />
                   <div className="flex-1">
-                    <span className="text-2xl font-semibold font-mono" style={{color: '#2CFF05'}}>Task:</span>
-                    <p className="text-base leading-relaxed font-mono" style={{color: '#28D14C'}}>
+                    <span className="text-2xl font-semibold font-mono" style={{color: '#33ff66'}}>Task:</span>
+                    <p className="text-base leading-relaxed font-mono mt-1" style={{color: 'rgba(51, 255, 102, 0.8)', lineHeight: '1.7'}}>
                       Exactly when the timer hits zero, drop to the floor and do ten push-ups
                     </p>
                   </div>
@@ -188,65 +209,65 @@ export default function Home() {
         return (
           <div className="h-full overflow-y-auto">
             {/* Header */}
-            <div className="p-6 pb-4">
-              <h1 className="text-4xl font-bold font-mono mb-2" style={{color: '#2CFF05'}}>Top Operatives</h1>
+            <div className="p-6 pb-4 fade-in">
+              <h1 className="text-4xl font-bold font-mono mb-2 neon-glow" style={{color: '#33ff66'}}>Top Operatives</h1>
             </div>
 
             {/* Leaderboard Card */}
-            <div className="mx-6 mb-6">
-              <div className="rounded-lg shadow-sm border p-4" style={{backgroundColor: '#141414', borderColor: '#28D14C'}}>
-                <div className="space-y-2">
+            <div className="mx-6 mb-6 fade-in">
+              <div className="rounded-lg border p-4 neon-border" style={{backgroundColor: 'rgba(26, 26, 26, 0.6)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(5px)'}}>
+                <div className="space-y-1">
                   {/* Top 5 Agents */}
-                  <div className="flex items-center justify-between py-2 border-b" style={{borderColor: '#28D14C'}}>
-                    <span className="text-lg font-bold font-mono" style={{color: '#2CFF05'}}>1.</span>
+                  <div className="flex items-center justify-between py-3 border-b hover:bg-opacity-10 hover:bg-green-900 transition-colors" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
+                    <span className="text-lg font-bold font-mono neon-glow" style={{color: '#33ff66'}}>1.</span>
                     <div className="flex items-center justify-between flex-1 ml-4">
-                      <span className="text-base font-mono" style={{color: '#28D14C'}}>Agent Shadow</span>
-                      <span className="text-sm font-mono" style={{color: '#28D14C'}}>12 missions</span>
+                      <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Agent Shadow</span>
+                      <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>12 missions</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between py-2 border-b" style={{borderColor: '#28D14C'}}>
-                    <span className="text-lg font-bold font-mono" style={{color: '#2CFF05'}}>2.</span>
+                  <div className="flex items-center justify-between py-3 border-b hover:bg-opacity-10 hover:bg-green-900 transition-colors" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
+                    <span className="text-lg font-bold font-mono" style={{color: '#33ff66'}}>2.</span>
                     <div className="flex items-center justify-between flex-1 ml-4">
-                      <span className="text-base font-mono" style={{color: '#28D14C'}}>Agent Viper</span>
-                      <span className="text-sm font-mono" style={{color: '#28D14C'}}>6 missions</span>
+                      <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Agent Viper</span>
+                      <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>6 missions</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between py-2 border-b" style={{borderColor: '#28D14C'}}>
-                    <span className="text-lg font-bold font-mono" style={{color: '#2CFF05'}}>3.</span>
+                  <div className="flex items-center justify-between py-3 border-b hover:bg-opacity-10 hover:bg-green-900 transition-colors" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
+                    <span className="text-lg font-bold font-mono" style={{color: '#33ff66'}}>3.</span>
                     <div className="flex items-center justify-between flex-1 ml-4">
-                      <span className="text-base font-mono" style={{color: '#28D14C'}}>Agent Storm</span>
-                      <span className="text-sm font-mono" style={{color: '#28D14C'}}>4 missions</span>
+                      <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Agent Storm</span>
+                      <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>4 missions</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between py-2 border-b" style={{borderColor: '#28D14C'}}>
-                    <span className="text-lg font-bold font-mono" style={{color: '#2CFF05'}}>4.</span>
+                  <div className="flex items-center justify-between py-3 border-b hover:bg-opacity-10 hover:bg-green-900 transition-colors" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
+                    <span className="text-lg font-bold font-mono" style={{color: '#33ff66'}}>4.</span>
                     <div className="flex items-center justify-between flex-1 ml-4">
-                      <span className="text-base font-mono" style={{color: '#28D14C'}}>Agent Falcon</span>
-                      <span className="text-sm font-mono" style={{color: '#28D14C'}}>2 missions</span>
+                      <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Agent Falcon</span>
+                      <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>2 missions</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between py-2 border-b" style={{borderColor: '#28D14C'}}>
-                    <span className="text-lg font-bold font-mono" style={{color: '#2CFF05'}}>5.</span>
+                  <div className="flex items-center justify-between py-3 border-b hover:bg-opacity-10 hover:bg-green-900 transition-colors" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
+                    <span className="text-lg font-bold font-mono" style={{color: '#33ff66'}}>5.</span>
                     <div className="flex items-center justify-between flex-1 ml-4">
-                      <span className="text-base font-mono" style={{color: '#28D14C'}}>Agent Thunder</span>
-                      <span className="text-sm font-mono" style={{color: '#28D14C'}}>1 mission</span>
+                      <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Agent Thunder</span>
+                      <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>1 mission</span>
                     </div>
                   </div>
                   
                   {/* Centered Ellipsis */}
                   <div className="flex justify-center py-4">
-                    <span className="text-2xl font-bold font-mono" style={{color: '#2CFF05'}}>...</span>
+                    <span className="text-2xl font-bold font-mono opacity-50" style={{color: '#33ff66'}}>...</span>
                   </div>
                   
                   {/* Additional Bar */}
-                  <div className="py-2 border-b" style={{borderColor: '#28D14C'}}></div>
+                  <div className="py-2 border-b" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}></div>
                   
                   {/* Position 40 */}
-                  <div className="flex items-center justify-between py-2">
-                    <span className="text-lg font-bold font-mono" style={{color: '#2CFF05'}}>40.</span>
+                  <div className="flex items-center justify-between py-3 rounded" style={{backgroundColor: 'rgba(44, 255, 5, 0.05)'}}>
+                    <span className="text-lg font-bold font-mono" style={{color: '#33ff66'}}>40.</span>
                     <div className="flex items-center justify-between flex-1 ml-4">
-                      <span className="text-base font-mono" style={{color: '#28D14C'}}>Agent Phoenix</span>
-                      <span className="text-sm font-mono" style={{color: '#28D14C'}}>0 missions</span>
+                      <span className="text-base font-mono font-bold" style={{color: '#33ff66'}}>Agent Phoenix</span>
+                      <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>0 missions</span>
                     </div>
                   </div>
                 </div>
@@ -254,20 +275,20 @@ export default function Home() {
             </div>
 
             {/* Syndicate Info Card */}
-            <div className="mx-6 mb-6">
-              <div className="rounded-lg shadow-sm border p-4" style={{backgroundColor: '#141414', borderColor: '#28D14C'}}>
-                <div className="space-y-3">
+            <div className="mx-6 mb-6 fade-in">
+              <div className="rounded-lg border p-5 neon-border" style={{backgroundColor: 'rgba(26, 26, 26, 0.6)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(5px)'}}>
+                <div className="space-y-4">
                   <div className="flex items-center">
-                    <span className="text-lg font-bold font-mono mr-3" style={{color: '#2CFF05'}}>Syndicate:</span>
-                    <span className="text-base font-mono" style={{color: '#28D14C'}}>University of Washington</span>
+                    <span className="text-lg font-bold font-mono mr-3" style={{color: '#33ff66'}}>Syndicate:</span>
+                    <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>University of Washington</span>
                   </div>
                   <div className="flex items-center">
-                    <span className="text-lg font-bold font-mono mr-3" style={{color: '#2CFF05'}}>Target:</span>
-                    <span className="text-base font-mono" style={{color: '#28D14C'}}>DubHacks 2025</span>
+                    <span className="text-lg font-bold font-mono mr-3" style={{color: '#33ff66'}}>Target:</span>
+                    <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>DubHacks 2025</span>
                   </div>
                   <div className="flex items-center">
-                    <span className="text-lg font-bold font-mono mr-3" style={{color: '#2CFF05'}}>Personnel:</span>
-                    <span className="text-base font-mono" style={{color: '#28D14C'}}>50 Agents</span>
+                    <span className="text-lg font-bold font-mono mr-3" style={{color: '#33ff66'}}>Personnel:</span>
+                    <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>50 Agents</span>
                   </div>
                 </div>
               </div>
@@ -292,10 +313,10 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen flex flex-col" style={{backgroundColor: '#141414'}}>
+    <div className="h-screen flex flex-col" style={{backgroundColor: '#0d0d0d'}}>
       {/* Fixed Header Bar */}
-      <div className="fixed top-0 left-0 right-0 py-4 border-b z-50" style={{backgroundColor: '#141414', borderColor: '#28D14C'}}>
-        <h1 className="text-2xl font-bold font-mono text-center" style={{color: '#2CFF05', letterSpacing: '0.4em'}}>
+      <div className="fixed top-0 left-0 right-0 py-4 border-b z-50 neon-border" style={{backgroundColor: 'rgba(13, 13, 13, 0.95)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(10px)'}}>
+        <h1 className="text-2xl font-bold font-mono text-center neon-glow" style={{color: '#33ff66', letterSpacing: '0.4em'}}>
           U N F R E E Z E
         </h1>
       </div>
@@ -309,14 +330,15 @@ export default function Home() {
         {renderPage()}
       </div>
       
-      <div className="fixed bottom-0 left-0 right-0 border-t z-50" style={{backgroundColor: '#141414', borderColor: '#28D14C'}}>
+      <div className="fixed bottom-0 left-0 right-0 border-t z-50 neon-border" style={{backgroundColor: 'rgba(13, 13, 13, 0.95)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(10px)'}}>
         <div className="flex">
           <button
             onClick={() => setCurrentPage('page1')}
             className="flex-1 py-4 text-center flex items-center justify-center"
             style={{
-              backgroundColor: currentPage === 'page1' ? '#2CFF05' : '#141414',
-              color: currentPage === 'page1' ? '#141414' : '#28D14C'
+              backgroundColor: currentPage === 'page1' ? '#33ff66' : 'transparent',
+              color: currentPage === 'page1' ? '#0d0d0d' : 'rgba(51, 255, 102, 0.7)',
+              boxShadow: currentPage === 'page1' ? '0 0 20px rgba(51, 255, 102, 0.4)' : 'none'
             }}
           >
             <User size={24} />
@@ -325,8 +347,9 @@ export default function Home() {
             onClick={() => setCurrentPage('page2')}
             className="flex-1 py-4 text-center flex items-center justify-center"
             style={{
-              backgroundColor: currentPage === 'page2' ? '#2CFF05' : '#141414',
-              color: currentPage === 'page2' ? '#141414' : '#28D14C'
+              backgroundColor: currentPage === 'page2' ? '#33ff66' : 'transparent',
+              color: currentPage === 'page2' ? '#0d0d0d' : 'rgba(51, 255, 102, 0.7)',
+              boxShadow: currentPage === 'page2' ? '0 0 20px rgba(51, 255, 102, 0.4)' : 'none'
             }}
           >
             <Crosshair size={24} />
@@ -335,8 +358,9 @@ export default function Home() {
             onClick={() => setCurrentPage('page3')}
             className="flex-1 py-4 text-center flex items-center justify-center"
             style={{
-              backgroundColor: currentPage === 'page3' ? '#2CFF05' : '#141414',
-              color: currentPage === 'page3' ? '#141414' : '#28D14C'
+              backgroundColor: currentPage === 'page3' ? '#33ff66' : 'transparent',
+              color: currentPage === 'page3' ? '#0d0d0d' : 'rgba(51, 255, 102, 0.7)',
+              boxShadow: currentPage === 'page3' ? '0 0 20px rgba(51, 255, 102, 0.4)' : 'none'
             }}
           >
             <Crown size={24} />
