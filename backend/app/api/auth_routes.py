@@ -5,12 +5,14 @@ from starlette.responses import RedirectResponse
 import json
 
 # --- Session Management for Authlib ---
-def upsert_user(token):
-    user_id = token["sub"]
-    first_name = token["userinfo"]["given_name"]
-    family_name = token["userinfo"]["family_name"]
-    email = token["userinfo"]["email"]
-    pfp = token["userinfo"]["picture"]
+def parse_user(token):
+    return {
+        "user_id": token["sub"],
+        "first_name": token["userinfo"]["given_name"],
+        "family_name": token["userinfo"]["family_name"],
+        "email": token["userinfo"]["email"],
+        "pfp": token["userinfo"]["picture"]
+        }
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -42,10 +44,8 @@ async def google_callback(request: Request):
         )
     try:
         token = await oauth.google.authorize_access_token(request)
-        request.session["user_id"] = token["sub"]
-        
-        upsert_user(token)
-        
+        request.session["user"] = parse_user(token)
+
         response = RedirectResponse(url="/")
         return response
     
@@ -63,7 +63,6 @@ async def google_callback(request: Request):
 async def logout(request: Request):
     """Logs out the user by clearing the session."""
     request.session.pop("user", None)
-    request.session.pop("id_token", None)
     return {"message": "Logged out successfully"}
 
 @router.get("/me")
