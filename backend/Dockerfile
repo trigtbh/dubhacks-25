@@ -29,4 +29,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uv", "run", "run.py"]
+CMD ["uv", "run", "main.py"]
