@@ -15,14 +15,14 @@ from api.auth import auth_router
 from api.users import user_router
 from api.photos import photo_router
 from api.leaderboard import lb_router
-from api.challenges import challenge_router
+from api.challenges import challenges_router
 from api.challenges import create_all_challenges
 
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(photo_router)
 app.include_router(lb_router)
-app.include_router(challenge_router)
+app.include_router(challenges_router)
 
 
 
