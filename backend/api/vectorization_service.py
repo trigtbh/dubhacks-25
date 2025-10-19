@@ -1,10 +1,9 @@
 from google import genai
 from google.genai import types
-from app.config import settings
-from typing import List, Set
-import json
+from typing import List
+import json, os
 
-client = genai.Client(api_key=settings.gemini_api_key)
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 def embed_content(content: str) -> List[float]:
     return client.models.embed_content(
@@ -19,6 +18,6 @@ def dist(vec1: List[float], vec2: List[float]) -> float:
 with open("personas.json", "r") as f:
     embeddings = json.load(f)
 
-def classify(content: str, visited: Set[int]) -> int:
+def classify(content: str) -> int:
     user = embed_content(content)
-    return min(((i, dist(user, e)) for i, e in enumerate(embeddings) if not i in visited), key=lambda x: x[1])[0]
+    return min(((i, dist(user, e)) for i, e in enumerate(embeddings)), key=lambda x: x[1])[0]
