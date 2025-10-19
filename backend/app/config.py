@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # Google SSO Configuration
     google_client_id: str | None = None
     google_client_secret: str | None = None
-    google_redirect_uri: str | None = None
+    _google_redirect_path: str = "/auth/google/callback"
 
     # Session Configuration
     session_secret_key: str = "super-secret-key" # CHANGE THIS IN PRODUCTION ENVIRONMENT
@@ -35,6 +35,21 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+
+    @property
+    def _effective_api_host(self) -> str:
+        """Returns 'localhost' if api_host is '0.0.0.0', otherwise api_host."""
+        return "localhost" if self.api_host == "0.0.0.0" else self.api_host
+
+    @property
+    def base_url(self) -> str:
+        """Constructs the base URL for the API."""
+        return f"http://{self._effective_api_host}:{self.api_port}"
+
+    @property
+    def google_redirect_uri(self) -> str:
+        """Constructs the full Google OAuth redirect URI."""
+        return f"{self.base_url}{self._google_redirect_path}"
         
     @property
     def cloudflare_configured(self) -> bool:
@@ -64,7 +79,10 @@ class Settings(BaseSettings):
 try:
     with open("secrets/googlesso.json", "r") as gsso:
         gsettings = json.load(gsso)
-        settings = Settings(google_redirect_uri="/auth/google/callback", google_client_id=gsettings["web"]["client_id"], google_client_secret=gsettings["web"]["client_secret"])
+        settings = Settings(
+            google_client_id=gsettings["web"]["client_id"],
+            google_client_secret=gsettings["web"]["client_secret"]
+        )
 except FileNotFoundError:
     import sys
     print("Error! Could not import `secrets/googlesso.json`!")
