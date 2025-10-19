@@ -4,6 +4,11 @@ from vectorization_service import classify
 
 user_router = APIRouter(prefix="/users", tags=["User Management"])
 
+@user_router.get("/@me")
+async def get_your_user(request: Request):
+    data = await request.json()
+    uuid = data.get("uuid")
+    return cursor["users"].find_one({"_id": uuid})
 
 @user_router.post("/inputs")
 async def add_user_inputs(request: Request):
