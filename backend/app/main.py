@@ -2,7 +2,8 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from authlib.integrations.starlette_client import OAuth # New import
+from starlette.requests import Request # New import for session helpers
+from authlib.integrations.starlette_client import OAuth
 from datetime import datetime
 from app.config import settings
 from app.api import routes
@@ -27,6 +28,23 @@ app.add_middleware(
 
 # Add Session Middleware for OAuth
 app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
+
+# Initialize Authlib OAuth
+oauth = OAuth()
+
+if settings.google_sso_configured:
+    oauth.register(
+        name="google",
+        client_id=settings.google_client_id,
+        client_secret=settings.google_client_secret,
+        redirect_uri=settings.google_redirect_uri,
+        server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+        client_kwargs={"scope": "openid email profile"},
+        save_state=auth_routes_module.save_oauth_session, # Explicitly tell authlib how to save state
+        load_state=auth_routes_module.load_oauth_session, # Explicitly tell authlib how to load state
+    )
+else:
+    print("WARNING: Google SSO is not configured. Google authentication routes will not be available.")
 
 # Include API routes
 app.include_router(routes.router)
