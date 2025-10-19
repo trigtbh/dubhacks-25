@@ -29,8 +29,9 @@ class Settings(BaseSettings):
     google_client_secret: str | None = None
     _google_redirect_path: str = "/auth/google/callback"
 
-    # Session Configuration
-    session_secret_key: str = "super-secret-key" # CHANGE THIS IN PRODUCTION ENVIRONMENT
+    # MongoDB Configuration
+    mongodb_uri: str | None = None
+    session_secret_key: str = "super-secret-key"
 
     class Config:
         env_file = ".env"

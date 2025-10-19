@@ -20,11 +20,12 @@ router = APIRouter(prefix="/api/v1/users", tags=["User Vectorization & Clusterin
 class UserAttributes(BaseModel):
     """User attributes that will be converted to vectors"""
     uuid: str
-    skills: List[str] = Field(..., description="List of user skills")
-    interests: List[str] = Field(..., description="List of user interests")
+    name: str
+    skills: str = Field(default="", description="User skills as comma-separated string")
+    interests: str = Field(default="", description="User interests as comma-separated string")
     hobbies: List[str] = Field(default_factory=list, description="List of user hobbies")
     vibe: str = Field(default="", description="User vibe or personality type")
-    comfort: List[str] = Field(default_factory=list, description="Comfort level and preferences")
+    comfort: str = Field(default="", description="Comfort level and preferences")
     availability: str = Field(default="", description="User availability (e.g., weekdays, weekends, flexible)")
 
 class UserAttributesRequest(BaseModel):

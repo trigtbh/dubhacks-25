@@ -37,28 +37,24 @@ class UserVectorizationService:
         """
         parts = []
 
-        # Add specialty with high weight (split by comma if multiple)
-        if user.specialty:
-            specialties = [s.strip() for s in user.specialty.split(',') if s.strip()]
-            parts.extend(specialties * 3)  # Repeat specialties for higher weight
+        # Add skills with high weight (split by comma)
+        if hasattr(user, 'skills') and user.skills:
+            skills = [s.strip() for s in user.skills.split(',') if s.strip()]
+            parts.extend(skills * 3)  # Repeat skills for higher weight
 
         # Add interests with high weight (split by comma)
         if user.interests:
             interests = [i.strip() for i in user.interests.split(',') if i.strip()]
             parts.extend(interests * 3)  # Repeat interests for higher weight
 
-        # Add field with medium weight (split by comma if multiple)
-        if user.field:
-            fields = [f.strip() for f in user.field.split(',') if f.strip()]
-            parts.extend(fields * 2)  # Repeat fields for medium weight
-
         # Add vibe
         if user.vibe:
             parts.extend([user.vibe] * 2)  # Repeat vibe for medium weight
 
-        # Add comfort preferences
-        if user.comfort:
-            parts.extend([user.comfort] * 2)  # Repeat comfort for higher weight
+        # Add comfort preferences (split by comma)
+        if hasattr(user, 'comfort') and user.comfort:
+            comforts = [c.strip() for c in user.comfort.split(',') if c.strip()]
+            parts.extend(comforts * 2)  # Repeat comfort for higher weight
 
         # Add previous missions (already a list)
         if user.previous_missions:
@@ -184,6 +180,15 @@ class UserVectorizationService:
 
         similarity_scores = []
 
+        # Skills similarity
+        if hasattr(user1, 'skills') and hasattr(user2, 'skills') and user1.skills and user2.skills:
+            skills1 = set(s.strip() for s in user1.skills.split(',') if s.strip())
+            skills2 = set(s.strip() for s in user2.skills.split(',') if s.strip())
+            intersection = len(skills1.intersection(skills2))
+            union = len(skills1.union(skills2))
+            if union > 0:
+                similarity_scores.append(intersection / union)  # Jaccard similarity
+
         # Interests similarity
         if user1.interests and user2.interests:
             interests1 = set(i.strip() for i in user1.interests.split(',') if i.strip())
@@ -193,21 +198,12 @@ class UserVectorizationService:
             if union > 0:
                 similarity_scores.append(intersection / union)  # Jaccard similarity
 
-        # Specialties similarity
-        if user1.specialty and user2.specialty:
-            specialties1 = set(s.strip() for s in user1.specialty.split(',') if s.strip())
-            specialties2 = set(s.strip() for s in user2.specialty.split(',') if s.strip())
-            intersection = len(specialties1.intersection(specialties2))
-            union = len(specialties1.union(specialties2))
-            if union > 0:
-                similarity_scores.append(intersection / union)
-
-        # Field similarity
-        if user1.field and user2.field:
-            fields1 = set(f.strip() for f in user1.field.split(',') if f.strip())
-            fields2 = set(f.strip() for f in user2.field.split(',') if f.strip())
-            intersection = len(fields1.intersection(fields2))
-            union = len(fields1.union(fields2))
+        # Comfort similarity
+        if hasattr(user1, 'comfort') and hasattr(user2, 'comfort') and user1.comfort and user2.comfort:
+            comforts1 = set(c.strip() for c in user1.comfort.split(',') if c.strip())
+            comforts2 = set(c.strip() for c in user2.comfort.split(',') if c.strip())
+            intersection = len(comforts1.intersection(comforts2))
+            union = len(comforts1.union(comforts2))
             if union > 0:
                 similarity_scores.append(intersection / union)
 

@@ -8,13 +8,11 @@ from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/v1/users", tags=["User Management"], dependencies=[Depends(get_current_user)])
 
+from app.api.mongo import cursor
+
 # ============================================================================
 # Pydantic Models
 # ============================================================================
-
-class CreateUserRequest(BaseModel):
-    """Request to create a new user"""
-    user_attributes: UserAttributes = Field(..., description="User attributes for the new user")
 
 class CreateUserResponse(BaseModel):
     """Response for user creation"""
@@ -45,8 +43,11 @@ _users_store: Dict[str, UserAttributes] = {}
 # User Management Endpoints
 # ============================================================================
 
-@router.post("", response_model=CreateUserResponse)
-async def create_user(request: CreateUserRequest):
+def generate_agent_name():
+    return ""
+
+@router.post("/create", response_model=CreateUserResponse)
+async def create_user(request: UserAttributes):
     """
     Create a new user with the given attributes.
 
@@ -67,7 +68,20 @@ async def create_user(request: CreateUserRequest):
             raise HTTPException(status_code=409, detail=f"User with ID '{uuid}' already exists")
 
         # Store the user
-        _users_store[uuid] = request.user_attributes
+        # _users_store[uuid] = request.user_attributes
+        user_dict = {
+            "_id": uuid,
+            "skills": request.skills,
+            "interests": request.interests,
+            "hobbies": request.hobbies,
+            "vibe": request.vibe,
+            "comfort": request.comfort,
+            "availability": request.availability,
+            "name": request.name,
+            "agent": generate_agent_name()
+        }
+
+        cursor.users.insert_one(user_dict)
 
         return CreateUserResponse(
             uuid=uuid,

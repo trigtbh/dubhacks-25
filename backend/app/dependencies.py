@@ -15,6 +15,7 @@ async def get_current_user(request: Request) -> dict:
     Raises:
         HTTPException: If user is not authenticated
     """
+    print(request.session)
     user = request.session.get("user")
     if not user:
         raise HTTPException(
@@ -35,4 +36,5 @@ async def get_current_user_optional(request: Request) -> Optional[dict]:
     Returns:
         User information from session or None if not authenticated
     """
+    print(request.session)
     return request.session.get("user")
