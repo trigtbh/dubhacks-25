@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import Logo from '../components/Logo';
 import AudioBar from '../components/AudioBar';
 import TypingText from "@/components/text/typing-text";
+import Cookies from "js-cookie";
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -59,7 +60,11 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
               setShowUnfreeze(true);
               const t2 = setTimeout(() => {
                 setShowUnfreeze(false);
-                setCurrentStep(1);
+                if (Cookies.get("userid")) {
+                  setCurrentStep(1.6);
+                } else {
+                  setCurrentStep(1);
+                }
               }, 1000);
             }, 500);
             return;
@@ -105,6 +110,10 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   // After Google SSO click, proceed
   useEffect(() => {
     if (currentStep === 1.6) {
+      if (!Cookies.get("userid")) {
+        window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/login`;
+      }
+      
       const t = setTimeout(() => setCurrentStep(2), 2000);
       return () => clearTimeout(t);
     }

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request
+from fastapi.responses import RedirectResponse
 import os
 
 from api.mongo import cursor
@@ -39,6 +40,7 @@ auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 @auth_router.get('/login')
 async def login(request: Request):
     redirect_uri = request.url_for('auth_callback')
+    print(redirect_uri)
     return await google.authorize_redirect(request, redirect_uri)
 
 
@@ -63,8 +65,6 @@ async def auth(request: Request):
     if not cursor["users"].find_one({"sub": user["sub"]}):
         cursor["users"].insert_one(user)
 
-    # generate name by picking two random words from names.txt
-#    user["name"] = "Agent " + " ".join(random.sample(NAMES, 2))
-
-    return user
-
+    redirect_response = RedirectResponse(url=os.getenv('HOST'), status_code=303)
+    redirect_response.set_cookie("userid", user["sub"])
+    return redirect_response
