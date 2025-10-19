@@ -23,7 +23,7 @@ def generate_summary(agent_name: str, category: int, user_inputs: list) -> str:
     
     try:
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.0-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.7,
@@ -33,6 +33,7 @@ def generate_summary(agent_name: str, category: int, user_inputs: list) -> str:
         return response.text.strip()
     except Exception as e:
         # Fallback summary if Gemini fails
+        raise e
         return f"{agent_name} is a mysterious agent with category {category} who has shared {len(user_inputs)} insights."
 
 user_router = APIRouter(prefix="/users", tags=["User Management"])
