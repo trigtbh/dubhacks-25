@@ -8,19 +8,37 @@ import os
 # Initialize Gemini client
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-def generate_summary(agent_name: str, category: int, user_inputs: list) -> str:
-    inputs_text = " ".join(user_inputs)
-    
+categories = [
+    "The Coffeehouse Creator",
+    "The Outdoors Hacker",
+    "The Chill Gamer",
+    "The Social Catalyst",
+    "The Deep Thinker",
+    "The Fitness Futurist",
+    "The Global Nomad",
+    "The Music Maker",
+    "The Cozy Coder",
+    "The Builder Dreamer"
+];
+
+user_router = APIRouter(prefix="/users", tags=["User Management"])
+
+@user_router.get("/summary/{uuid}")
+async def summarize_user(uuid: str, request: Request):
+    user = cursor["users"].find_one({"_id": uuid})
+
+    inputs_text = " ".join(user["inputs"])
+
     prompt = f"""
     Based on the following user inputs and their personality category, generate a brief, engaging summary for this agent:
-    
-    Agent Name: {agent_name}
-    Personality Category: {category}
+
+    Agent Name: {user['inputs']['agent']}
+    Personality Category: {categories[classify(inputs_text)]}
     User Inputs: {inputs_text}
-    
-    Create a 2-3 sentence summary that captures their personality and interests in a spy/agent theme. Always start with "[Name], or [Agent Name] is...". Do not include any additional information or text
+
+    Create a 2-3 sentence summary that captures their personality and interests in a spy/agent theme. Always start with "[Name], or [Agent Name] is...".
     """
-    
+
     try:
         response = client.models.generate_content(
             model="gemini-2.0-flash",
@@ -32,11 +50,7 @@ def generate_summary(agent_name: str, category: int, user_inputs: list) -> str:
         )
         return response.text.strip()
     except Exception as e:
-        # Fallback summary if Gemini fails
-        raise e
-        return f"{agent_name} is a mysterious agent with category {category} who has shared {len(user_inputs)} insights."
-
-user_router = APIRouter(prefix="/users", tags=["User Management"])
+        return f"{user['agent']} is mysterious. Not much is known about them."
 
 @user_router.get("/{uuid}")
 async def get_your_user(uuid: str, request: Request):

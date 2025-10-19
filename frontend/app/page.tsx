@@ -28,6 +28,8 @@ export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const [userData, setUserData] = useState<AgentProfile | null>(null);
+  const [leaderboardData, setLeaderboardData] = useState<AgentProfile[] | null>(null);
+  const [userPlacement, setUserPlacement] = useState(-1);
   
   // Images array
   const images = [
@@ -48,8 +50,61 @@ export default function Home() {
       const req = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${Cookies.get("userid")}`);
       const json = await req.json();
       setUserData(json);
+      setTimeLeft(3600 - json.current_mission.assigned_at);
     })().catch(e => console.error(e));
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      const req = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/leaderboard/top-10`);
+      const json = await req.json();
+      setLeaderboardData(json);
+    })().catch(e => console.error(e));
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const req = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/placement/${Cookies.get("userid")}`);
+      const json = await req.json();
+      setUserPlacement(json.placement);
+    })().catch(e => console.error(e));
+  }, []);
+
+  const topFiveAgents = leaderboardData?.map((u, i) => (
+    <div className="flex items-center justify-between py-3 border-b hover:bg-opacity-10 hover:bg-green-900 transition-colors" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
+      <span className="text-lg font-bold font-mono neon-glow" style={{color: '#33ff66'}}>{i+1}.</span>
+      <div className="flex items-center justify-between flex-1 ml-4">
+        <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>{u.agent}</span>
+        <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>{u.previous_missions.length} mission{u.previous_missions.length === 1 ? '' : 's'}</span>
+      </div>
+    </div>
+  ));
+
+  let userRanking;
+  if (userPlacement > 5) {
+    userRanking = null;
+  } else {
+    userRanking = (
+      <>
+        {/* Centered Ellipsis */}
+        <div className="flex justify-center py-4">
+          <span className="text-2xl font-bold font-mono opacity-50" style={{color: '#33ff66'}}>...</span>
+        </div>
+                  
+        {/* Additional Bar */}
+        <div className="py-2 border-b" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}></div>
+                  
+        {/* Position 40 */}
+        <div className="flex items-center justify-between py-3 rounded" style={{backgroundColor: 'rgba(44, 255, 5, 0.05)'}}>
+          <span className="text-lg font-bold font-mono" style={{color: '#33ff66'}}>40.</span>
+          <div className="flex items-center justify-between flex-1 ml-4">
+            <span className="text-base font-mono font-bold" style={{color: '#33ff66'}}>Agent Phoenix</span>
+            <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>0 missions</span>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   // Countdown timer effect
   useEffect(() => {
@@ -113,8 +168,8 @@ export default function Home() {
           <div className="h-full overflow-y-auto">
           {/* Header */}
             <div className="p-6 pb-4 fade-in">
-              <h1 className="text-4xl font-bold font-mono mb-2 neon-glow" style={{color: '#33ff66'}}>{userData?.agent || "Agent"}</h1>
-              <p className="text-lg font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>&gt; Secret Name: {userData?.name || ""}</p>
+              <h1 className="text-4xl font-bold font-mono mb-2 neon-glow" style={{color: '#33ff66'}}>{userData?.agent}</h1>
+              <p className="text-lg font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>&gt; Secret Name: {userData?.name}</p>
           </div>
 
             {/* Agent Info Card */}
@@ -156,36 +211,13 @@ export default function Home() {
                   <h2 className="text-2xl font-semibold font-mono" style={{color: '#33ff66'}}>Mission Badges</h2>
                 </div>
                 <div className="max-h-48 overflow-y-auto">
-                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 1</h3>
-                  </div>
-                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 2</h3>
-                  </div>
-                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 3</h3>
-                  </div>
-                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 4</h3>
-                  </div>
-                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 5</h3>
-                  </div>
-                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 6</h3>
-                  </div>
-                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 7</h3>
-                  </div>
-                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 8</h3>
-                  </div>
-                  <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
-                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 9</h3>
-                  </div>
-                  <div className="p-3 hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer">
-                    <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission 10</h3>
-                  </div>
+                  {
+                    userData?.previous_missions.map((m, i) =>
+                      <div className="p-3 border-b hover:bg-opacity-20 hover:bg-green-900 transition-colors cursor-pointer" style={{borderColor: 'rgba(51, 255, 102, 0.15)'}}>
+                        <h3 className="font-medium text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Mission {i+1}: {m.challenge_name}</h3>
+                      </div>
+                    )
+                  }
                 </div>
               </div>
             </div>
@@ -197,7 +229,7 @@ export default function Home() {
             {/* Header */}
             <div className="p-6 pb-4 fade-in">
               <h1 className="text-4xl font-bold font-mono mb-2 neon-glow" style={{color: '#33ff66'}}>Current Mission</h1>
-              <p className="text-lg font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>&gt; Operation: Caffeine-Withdrawal</p>
+              <p className="text-lg font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>&gt; {userData?.current_mission.challenge_name}</p>
             </div>
 
             {/* Countdown Timer */}
@@ -218,7 +250,7 @@ export default function Home() {
                   <UserLock size={24} style={{color: '#33ff66'}} className="mr-3" />
                   <div>
                     <span className="text-2xl font-semibold font-mono" style={{color: '#33ff66'}}>Co-Op:</span>
-                    <p className="text-base font-mono mt-1" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Agent Nebula</p>
+                    <p className="text-base font-mono mt-1" style={{color: 'rgba(51, 255, 102, 0.8)'}}>{userData?.current_mission.agent_needed}</p>
                   </div>
                 </div>
 
@@ -227,7 +259,7 @@ export default function Home() {
                   <MapPin size={24} style={{color: '#33ff66'}} className="mr-3" />
                 <div>
                     <span className="text-2xl font-semibold font-mono" style={{color: '#33ff66'}}>Rendezvous:</span>
-                    <p className="text-base font-mono mt-1" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Redbull Fridge</p>
+                  <p className="text-base font-mono mt-1" style={{color: 'rgba(51, 255, 102, 0.8)'}}>{userData?.current_mission.riddle}</p>
                   </div>
                 </div>
 
@@ -237,7 +269,7 @@ export default function Home() {
                   <div className="flex-1">
                     <span className="text-2xl font-semibold font-mono" style={{color: '#33ff66'}}>Task:</span>
                     <p className="text-base leading-relaxed font-mono mt-1" style={{color: 'rgba(51, 255, 102, 0.8)', lineHeight: '1.7'}}>
-                      Exactly when the timer hits zero, drop to the floor and do ten push-ups
+                      {userData?.current_mission.action}
                     </p>
                   </div>
                 </div>
@@ -258,58 +290,8 @@ export default function Home() {
               <div className="rounded-lg border p-4 neon-border" style={{backgroundColor: 'rgba(26, 26, 26, 0.6)', borderColor: 'rgba(51, 255, 102, 0.4)', backdropFilter: 'blur(5px)'}}>
                 <div className="space-y-1">
                   {/* Top 5 Agents */}
-                  <div className="flex items-center justify-between py-3 border-b hover:bg-opacity-10 hover:bg-green-900 transition-colors" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
-                    <span className="text-lg font-bold font-mono neon-glow" style={{color: '#33ff66'}}>1.</span>
-                    <div className="flex items-center justify-between flex-1 ml-4">
-                      <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Agent Shadow</span>
-                      <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>12 missions</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between py-3 border-b hover:bg-opacity-10 hover:bg-green-900 transition-colors" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
-                    <span className="text-lg font-bold font-mono" style={{color: '#33ff66'}}>2.</span>
-                    <div className="flex items-center justify-between flex-1 ml-4">
-                      <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Agent Viper</span>
-                      <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>6 missions</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between py-3 border-b hover:bg-opacity-10 hover:bg-green-900 transition-colors" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
-                    <span className="text-lg font-bold font-mono" style={{color: '#33ff66'}}>3.</span>
-                    <div className="flex items-center justify-between flex-1 ml-4">
-                      <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Agent Storm</span>
-                      <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>4 missions</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between py-3 border-b hover:bg-opacity-10 hover:bg-green-900 transition-colors" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
-                    <span className="text-lg font-bold font-mono" style={{color: '#33ff66'}}>4.</span>
-                    <div className="flex items-center justify-between flex-1 ml-4">
-                      <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Agent Falcon</span>
-                      <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>2 missions</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between py-3 border-b hover:bg-opacity-10 hover:bg-green-900 transition-colors" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}>
-                    <span className="text-lg font-bold font-mono" style={{color: '#33ff66'}}>5.</span>
-                    <div className="flex items-center justify-between flex-1 ml-4">
-                      <span className="text-base font-mono" style={{color: 'rgba(51, 255, 102, 0.8)'}}>Agent Thunder</span>
-                      <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>1 mission</span>
-                    </div>
-                  </div>
-                  
-                  {/* Centered Ellipsis */}
-                  <div className="flex justify-center py-4">
-                    <span className="text-2xl font-bold font-mono opacity-50" style={{color: '#33ff66'}}>...</span>
-                  </div>
-                  
-                  {/* Additional Bar */}
-                  <div className="py-2 border-b" style={{borderColor: 'rgba(51, 255, 102, 0.25)'}}></div>
-                  
-                  {/* Position 40 */}
-                  <div className="flex items-center justify-between py-3 rounded" style={{backgroundColor: 'rgba(44, 255, 5, 0.05)'}}>
-                    <span className="text-lg font-bold font-mono" style={{color: '#33ff66'}}>40.</span>
-                    <div className="flex items-center justify-between flex-1 ml-4">
-                      <span className="text-base font-mono font-bold" style={{color: '#33ff66'}}>Agent Phoenix</span>
-                      <span className="text-sm font-mono opacity-70" style={{color: 'rgba(51, 255, 102, 0.8)'}}>0 missions</span>
-                    </div>
-                  </div>
+                  { topFiveAgents }
+                  { userRanking }
                 </div>
               </div>
             </div>

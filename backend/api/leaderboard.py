@@ -10,7 +10,7 @@ async def get_top_10():
     return list(user_data)
 
 
-@lb_router.get("/placement")
+@lb_router.get("/placement/{user_id}")
 async def get_user_placement(user_id: str):
     user = cursor["users"].find_one({"_id": user_id}, {"score": 1})
     if not user:
